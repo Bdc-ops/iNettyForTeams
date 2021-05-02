@@ -1,0 +1,9 @@
+JvmtiExport can_access_local_variables 0
+JvmtiExport can_hotswap_or_post_breakpoint 0
+JvmtiExport can_post_on_exceptions 0
+# 187 ciObject found
+ciMethod java/lang/Object <init> ()V 4097 1 3333027 0 -1
+ciMethod java/lang/String equals (Ljava/lang/Object;)Z 2049 12537 2490 0 -1
+ciMethodData java/lang/Object <init> ()V 2 3333027 orig 264 24 228 11 96 0 0 0 0 128 4 10 19 0 0 0 0 32 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 77 68 79 32 101 120 116 114 97 32 100 97 116 97 32 108 111 99 107 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 0 0 25 205 150 1 1 0 0 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 3 0 1 0 0 0 0 0 0 0 255 255 255 255 0 0 0 0 0 0 0 0 data 0 oops 0
+ciMethod java/lang/IllegalArgumentException <init> ()V 0 0 1 0 -1
+ciMethodData java/lang/String equals (Ljava/lang/Object;)Z 2 19063 orig 264 24 228 11 96 0 0 0 0 208 69 10 19 0 0 0 0 104 2 0 0 160 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 77 68 79 32 101 120 116 114 97 32 100 97 116 97 32 108 111 99 107 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 31 6 0 0 209 69 0 0 193 34 2 0 0 0 0 0 0 0 0 0 2 0 0 0 1 0 15 0 2 0 0 0 24 1 0 0 255 255 255 255 7 0 2 0 0 0 0 0 data 35 0x20007 0x591 0x20 0x329 0x80104 0x0 0x252aed0 0x590 0x0 0x0 0xb0007 0x1 0xc8 0x590 0xf0004 0x0 0x252aed0 0x590 0x0 0x0 0x1f0007 0x231 0x78 0x35f 0x350007 0x345 0x58 0x4472 0x420007 0x4458 0x20 0x1a 0x4a0003 0x4458 0xffffffffffffffc0 oops 2 6 java/lang/String
