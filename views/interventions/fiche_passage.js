@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, ScrollView, View, Text, TouchableOpacity, Image, TextInput, BackHandler } from 'react-native';
+import { StyleSheet, ScrollView, View, Text, TouchableOpacity, Image, TextInput, BackHandler,Alert } from 'react-native';
 import PhotoUpload from 'react-native-photo-upload';
 import ImageResizer from 'react-native-image-resizer';
 import RNFS from 'react-native-fs';
@@ -194,8 +194,8 @@ class fiche_passage extends React.Component {
           hotte: this.state.c[6],
           debit_avant: this.state.c[0],
           debit_apres: this.state.c[1],
-          img_avant: "this.state.img_c_0",
-          img_apres: "this.state.img_c_1"
+          img_avant: this.state.img_c_0,
+          img_apres: this.state.img_c_1
         },
         salle_de_bain: {
           bonetat: this.state.s[2],
@@ -204,8 +204,8 @@ class fiche_passage extends React.Component {
           bouche: this.state.s[5],
           debit_avant: this.state.s[0],
           debit_apres: this.state.s[1],
-          img_avant: "this.state.img_s_0",
-          img_apres: "this.state.img_s_1"
+          img_avant: this.state.img_s_0,
+          img_apres: this.state.img_s_1
         },
         wc: {
           bonetat: this.state.w[2],
@@ -214,8 +214,8 @@ class fiche_passage extends React.Component {
           bouche: this.state.w[5],
           debit_avant: this.state.w[0],
           debit_apres: this.state.w[1],
-          img_avant: "this.state.img_w_0",
-          img_apres: "this.state.img_w_1"
+          img_avant: this.state.img_w_0,
+          img_apres: this.state.img_w_1
         },
         autres: {
           bonetat: this.state.a[2],
@@ -224,11 +224,11 @@ class fiche_passage extends React.Component {
           bouche: this.state.a[5],
           debit_avant: this.state.a[0],
           debit_apres: this.state.a[1],
-          img_avant: "this.state.img_a_0",
-          img_apres: "this.state.img_a_1"
+          img_avant: this.state.img_a_0,
+          img_apres: this.state.img_a_1
         },
         comment: this.state.cmnt[0],
-        signature: "this.state.img_signature",
+        signature: this.state.img_signature,
         refs_des_bouches: this.state.cmnt[1]
       };
 
@@ -259,6 +259,54 @@ class fiche_passage extends React.Component {
     });
   }
 
+
+
+  absent_btn() {
+    Alert.alert(
+      "IMPORTANT",
+      "Voulez-vous vraiment marker le " + this.state.ref_passage+" comme absent",
+      [
+        {
+          text: "Annuler",
+          style: "cancel"
+        },
+        {
+          text: "Confirmer", onPress: () => this.mark_as_absent()
+        }
+      ],
+      { cancelable: false }
+    );
+  }
+
+
+async mark_as_absent(){
+  console.log('==============================');
+  console.log('Token : ' + this.state.token);
+  console.log('ID Passage : ' + this.state.id_passage);
+  await axios.post(`https://inetty.apps-dev.fr/api/mobile/interventions/pasages/mark-as-absent`, { auth_token: `${this.state.token}`, passage_id: this.state.id_passage })
+    .then(async (response) => {
+      if (response.status == 200) {
+        console.log('Marker le passage comem absent : ' + this.state.id_passage);
+        console.log('Reponse API status : ' + response.status);
+        this.setState({ message: 'Opération réussie, le passage est marqué comme Absent.' })
+        console.log('==============================');
+        //this.props.navigation.navigate('list_logements', { id_entervention: this.state.id_entervention });
+        this.props.navigation.navigate('list_passages', { id_entervention: this.state.id_entervention, id_passage: this.state.id_passage, id_logement: this.state.id_logement, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.Appt })
+
+
+      } else {
+        this.setState({ message: 'Opération échouée, veuillez vérifier votre connexion et réessayer' })
+      }
+    })
+    .catch(async (error) => {
+      console.log("ERROR API mark passage as absent URL : " + error);
+      this.setState({ message: 'Opération échouée, veuillez vérifier votre connexion et réessayer' })
+      console.log('==============================');
+    });
+
+}
+
+  
   render() {
     const data = [
       {
@@ -612,7 +660,7 @@ class fiche_passage extends React.Component {
 
           <CardView cardElevation={10} cornerRadius={20} style={styles.BouttonsContainer}>
             <TouchableOpacity style={styles.end_btn, { alignContent: 'center', margin: 15 }} onPress={() => this.terminer(c1, c2, c3, c4, c5, c6, c7, s1, s2, s3, s4, s5, s6, w1, w2, w3, w4, w5, w6, a1, a2, a3, a4, a5, a6, cm1, cm2)}>
-              <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: 'orange', padding: 20, borderRadius: 20, width: '100%' }}>{this.state.validator ? 'Re-valider' : 'Valider'}</Text>
+              <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: 'orange', padding: 20, borderRadius: 20, width: '100%' }}>{this.state.validator ? 'Re-valider' : 'Valider le rapport'}</Text>
             </TouchableOpacity>
 
 
@@ -632,6 +680,10 @@ class fiche_passage extends React.Component {
                 )
             }
 
+
+                <TouchableOpacity style={styles.refuse_btn, { alignContent: 'center', margin: 15, marginBottom: 60 }} onPress={() => this.absent_btn()}>
+                    <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: '#eb4d4b', padding: 20, borderRadius: 20, width: '100%' }}>Marker le passage comme absent</Text>
+                  </TouchableOpacity>
           </CardView>
 
 
