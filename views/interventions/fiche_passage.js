@@ -1,28 +1,20 @@
 import React from 'react';
-import { StyleSheet, ScrollView, View, Text, TouchableOpacity, Image, TextInput, BackHandler,Alert } from 'react-native';
-import PhotoUpload from 'react-native-photo-upload';
-import ImageResizer from 'react-native-image-resizer';
-import RNFS from 'react-native-fs';
-import * as ImagePicker from 'react-native-image-picker';
-import SignatureCapture from 'react-native-signature-capture';
+import { StyleSheet, ScrollView, View, Text, TouchableOpacity, Image, TextInput, BackHandler,Alert,PermissionsAndroid } from 'react-native';
 import ButtonSpinner from 'react-native-button-spinner';
 import LinearGradient from 'react-native-linear-gradient';
 import FooterView from '../static_component/FooterView'
 import axios from 'axios';
 import AsyncStorage from '@react-native-community/async-storage';
 import RadioButtonRN from 'radio-buttons-react-native';
-
 import CardView from 'react-native-cardview';
 
 const waiting = require('../../resources/images/waiting.png');
-const buildings = require('../../resources/images/buildings.png');
 
 class fiche_passage extends React.Component {
 
   constructor(props) {
     super(props);
     this.state = {
-      validator: '',
       day: '',
       id_passage: '',
       id_entervention: '',
@@ -32,23 +24,15 @@ class fiche_passage extends React.Component {
       id_addresse: '',
       ref_intervention: '',
       timer: 1,
-      c: [],
-      s: [],
-      w: [],
-      a: [],
-      cmnt: [],
-      img_c_0: '',
-      img_c_1: '',
-      img_s_0: '',
-      img_s_1: '',
-      img_w_0: '',
-      img_w_1: '',
-      img_a_0: '',
-      img_a_1: '',
-      img_signature: '',
+      cuisine_array : [],
+      salle_de_bain_array : [],
+      wc_array : [],
+      autres_array : [],
+      additional_informations_array:[],
       token: '',
       Appt: '',
       ref_passage: '',
+      data_passage:''
     };
   }
 
@@ -81,7 +65,6 @@ class fiche_passage extends React.Component {
             Appt: Appt,
             ref_passage: ref_passage,
           });
-          //this.Get_details_passage(token, id_passage);
           console.log('Fiche passage - Num appart : ' + this.state.Appt + ' - Id addresse : ' + this.state.id_addresse);
 
         } else {
@@ -96,175 +79,98 @@ class fiche_passage extends React.Component {
   }
 
 
-  handlechoosePhoto(indicator) {
-    const options = {
-      title: 'Choose an Image',
-      base64: true
-    };
-    ImagePicker.launchImageLibrary(options, response => {
-      const path = response.uri;
-      RNFS.readFile(path, 'base64').then(res => {
-        console.log('Image uplaoded - Path : ' + path);
-        indicator == 'c_0' ? this.setState({ img_c_0: res }) :
-          indicator == 'c_1' ? this.setState({ img_c_1: res }) :
-            indicator == 's_0' ? this.setState({ img_s_0: res }) :
-              indicator == 's_1' ? this.setState({ img_s_1: res }) :
-                indicator == 'w_0' ? this.setState({ img_w_0: res }) :
-                  indicator == 'w_1' ? this.setState({ img_w_1: res }) :
-                    indicator == 'a_0' ? this.setState({ img_a_0: res }) :
-                      indicator == 'a_1' ? this.setState({ img_a_1: res }) :
-                        ''
-      });
-    });
-  }
-
-  async Get_details_passage(token, id_passage) {
-    /*await axios.post(`https://inetty.apps-dev.fr/api/mobile/interventions/weekly/list`, { auth_token: `${token}` })
-      .then(async (response) => {
-        console.log('==============================');
-        console.log('Liste des interventions');
-        console.log('Reponse API status : ' + response.status);
-        if (response.data.success == true) {
-          console.log('msg success' + response.data.success);
-          console.log('List correctly mapped');
-          let list_intervention = response.data.ents_list;
-          var data = [];
-          await Object.keys(list_intervention, id_entervention).forEach(async function (index) {
-            if (list_intervention[index].id === id_entervention) {
-              console.log('id intervention' + id_entervention);
-              data.push(list_intervention[index]);
-            }
-          });
-          this.setState({ list_interventions: data, timer: 0 });
 
 
 
-        }
-        console.log('==============================');
-      })
-      .catch(async (error) => {
-        console.log("ERROR API interventions liste URL : " + error);
-        console.log('==============================');
-      });*/
-  }
-
-  async terminer(c1, c2, c3, c4, c5, c6, c7, s1, s2, s3, s4, s5, s6, w1, w2, w3, w4, w5, w6, a1, a2, a3, a4, a5, a6, cm1, cm2) {
-    this.setState({
-      c: [c1 ? c1 : 0, c2 ? c2 : 0, c3 ? c3 : 0, c4 ? c4 : 0, c5 ? c5 : 0, c6 ? c6 : 0, c7 ? c7 : 0],
-      s: [s1 ? s1 : 0, s2 ? s2 : 0, s3 ? s3 : 0, s4 ? s4 : 0, s5 ? s5 : 0, s6 ? s6 : 0],
-      w: [w1 ? w1 : 0, w2 ? w2 : 0, w3 ? w3 : 0, w4 ? w4 : 0, w5 ? w5 : 0, w6 ? w6 : 0],
-      a: [a1 ? a1 : 0, a2 ? a2 : 0, a3 ? a3 : 0, a4 ? a4 : 0, a5 ? a5 : 0, a6 ? a6 : 0],
-      cmnt: [cm1 ? cm1 : 0, cm2 ? cm2 : 0]
-    });
-    console.log('Data enregistrer');
-    this.refs["sign"].saveImage();
-  }
-
-  _onSaveEvent(result) {
-    if (result.encoded.length > 2000) {
-      console.log('Signature enregistrer');
-      this.setState({ img_signature: result.encoded, validator: 1 });
-      alert('Rapport valider');
-      console.log(result.encoded.length)
-    } else {
-      alert('Veuillez signer votre rapport pour le valider !');
-
-    }
-  }
-
-  _onDragEvent() {
-    console.log("dragged");
-  }
-
-
-  resetSign() {
-    this.refs["sign"].resetImage();
-  }
-
-  async send_data_to_server() {
+  async validate_data(cuisine_array,salle_de_bain_array,wc_array,autres_array,additional_informations_array){
     return new Promise(async (resolve, reject) => {
-      const data_passage = {
-        auth_token: this.state.token,
-        id_passage: this.state.id_passage,
-        cuisine: {
-          bonetat: this.state.c[2],
-          collee: this.state.c[3],
-          a_remplacer: this.state.c[4],
-          bouche: this.state.c[5],
-          hotte: this.state.c[6],
-          debit_avant: this.state.c[0],
-          debit_apres: this.state.c[1],
-          img_avant: this.state.img_c_0,
-          img_apres: this.state.img_c_1
-        },
-        salle_de_bain: {
-          bonetat: this.state.s[2],
-          collee: this.state.s[3],
-          a_remplacer: this.state.s[4],
-          bouche: this.state.s[5],
-          debit_avant: this.state.s[0],
-          debit_apres: this.state.s[1],
-          img_avant: this.state.img_s_0,
-          img_apres: this.state.img_s_1
-        },
-        wc: {
-          bonetat: this.state.w[2],
-          collee: this.state.w[3],
-          a_remplacer: this.state.w[4],
-          bouche: this.state.w[5],
-          debit_avant: this.state.w[0],
-          debit_apres: this.state.w[1],
-          img_avant: this.state.img_w_0,
-          img_apres: this.state.img_w_1
-        },
-        autres: {
-          bonetat: this.state.a[2],
-          collee: this.state.a[3],
-          a_remplacer: this.state.a[4],
-          bouche: this.state.a[5],
-          debit_avant: this.state.a[0],
-          debit_apres: this.state.a[1],
-          img_avant: this.state.img_a_0,
-          img_apres: this.state.img_a_1
-        },
-        comment: this.state.cmnt[0],
-        signature: this.state.img_signature,
-        refs_des_bouches: this.state.cmnt[1]
-      };
-
-      await axios(
-        {
-          method: 'post',
-          url: `https://inetty.apps-dev.fr/api/mobile/interventions/pasages/etat-des-lieux-logement`,
-          headers: { 'auth_token': this.state.token, 'Accept': 'application/json' },
-          data: data_passage
-        }
-      )
-        .then(async (response) => {
-          console.log('reponse : ' + response.status);
-          if (response.status === 200) {
-            console.log('ok : ' + response.status);
-            alert('Rapport Envoyer');
-            this.setState({ img_signature: '' });
-            //this.props.navigation.navigate('list_passages', { id_entervention: this.state.id_entervention, id_passage: this.state.id_passage, id_logement: this.state.id_logement });
-            this.props.navigation.navigate('list_logements', { id_entervention: this.state.id_entervention, id_addresse: this.state.id_addresse, ref_intervention: this.state.ref_intervention });
-            resolve("api ok");
-          }
-        })
-        .catch(error => {
-          console.log('Rapport non-envoyer, Error : ' + error);
-          alert('Rapport non-envoyer');
-          resolve("api ok");
-        });
-    });
+      this.setState({
+        cuisine_array:cuisine_array,
+        salle_de_bain_array:salle_de_bain_array,
+        wc_array:wc_array,
+        autres_array:autres_array,
+        additional_informations_array:additional_informations_array,
+      });
+        setTimeout(() => {
+          this.send_data_to_server(resolve);
+        }, 2500);
+      });
   }
+  
+  async send_data_to_server(resolve) {
 
+          const data_passage= {
+            auth_token: this.state.token,
+            id_passage: this.state.id_passage,
+            cuisine: {
+              debit_avant: this.state.cuisine_array[0],
+              debit_apres: this.state.cuisine_array[1],
+              bonetat: this.state.cuisine_array[2],
+              collee: this.state.cuisine_array[3],
+              a_remplacer: this.state.cuisine_array[4],
+              bouche: this.state.cuisine_array[5],
+              hotte: this.state.cuisine_array[6],
+            },
+            salle_de_bain: {
+              bonetat: this.state.salle_de_bain_array[2],
+              collee: this.state.salle_de_bain_array[3],
+              a_remplacer: this.state.salle_de_bain_array[4],
+              bouche: this.state.salle_de_bain_array[5],
+              debit_avant: this.state.salle_de_bain_array[0],
+              debit_apres: this.state.salle_de_bain_array[1],
+            },
+            wc: {
+              bonetat: this.state.wc_array[2],
+              collee: this.state.wc_array[3],
+              a_remplacer: this.state.wc_array[4],
+              bouche: this.state.wc_array[5],
+              debit_avant: this.state.wc_array[0],
+              debit_apres: this.state.wc_array[1],
+            },
+            autres: {
+              bonetat: this.state.autres_array[2],
+              collee: this.state.autres_array[3],
+              a_remplacer: this.state.autres_array[4],
+              bouche: this.state.autres_array[5],
+              debit_avant: this.state.autres_array[0],
+              debit_apres: this.state.autres_array[1],
+            },
+            details:{
+              comment: this.state.additional_informations_array[0],
+              refs_des_bouches: this.state.additional_informations_array[1]
+            }
+          };
+
+          console.log(data_passage);
+                await axios(
+                  {
+                    method: 'post',
+                    url: `https://inetty.apps-dev.fr/api/mobile/interventions/pasages/etat-des-lieux-logement`,
+                    headers: { 'auth_token': this.state.token, 'Accept': 'application/json' },
+                    data: data_passage
+                  }
+                )
+                  .then(async (response) => {
+                    console.log('reponse : ' + response.status);
+                    if (response.status === 200) {
+                      console.log('Rapport data Sent : ' + response.status);
+                      this.props.navigation.navigate('fiche_passage_pictures', { id_passage: this.state.id_passage, ref_passage: this.state.ref_passage + 1, id_logement: this.state.id_logement, id_entervention: this.state.id_entervention, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.Appt })
+                      //this.props.navigation.navigate('list_logements', { id_entervention: this.state.id_entervention, id_addresse: this.state.id_addresse, ref_intervention: this.state.ref_intervention });   
+                      resolve("api ok");
+                    }
+                  })
+                  .catch(error => {
+                    console.log('Rapport non-envoyer, Error : ' + error);
+                    alert('Rapport data non-envoyer');
+                    resolve("api ok");
+                  });       
+  }
 
 
   absent_btn() {
     Alert.alert(
       "IMPORTANT",
-      "Voulez-vous vraiment marker le " + this.state.ref_passage+" comme absent",
+      "Voulez-vous vraiment marker le " + this.state.ref_passage+" comme absent ?",
       [
         {
           text: "Annuler",
@@ -306,7 +212,6 @@ async mark_as_absent(){
 
 }
 
-  
   render() {
     const data = [
       {
@@ -318,38 +223,12 @@ async mark_as_absent(){
         value: 0
       }
     ];
-    //-----------
-    var c1 = 0;
-    var c2 = 0;
-    var c3 = 0;
-    var c4 = 0;
-    var c5 = 0;
-    var c6 = 0;
-    var c7 = 0;
-    //-----------
-    var s1 = 0;
-    var s2 = 0;
-    var s3 = 0;
-    var s4 = 0;
-    var s5 = 0;
-    var s6 = 0;
-    //-----------
-    var w1 = 0;
-    var w2 = 0;
-    var w3 = 0;
-    var w4 = 0;
-    var w5 = 0;
-    var w6 = 0;
-    //-----------
-    var a1 = 0;
-    var a2 = 0;
-    var a3 = 0;
-    var a4 = 0;
-    var a5 = 0;
-    var a6 = 0;
-    var cm1 = 0;
-    var cm2 = 0;
-
+    var cuisine_array=[];
+    var salle_de_bain_array=[];
+    var wc_array=[];
+    var autres_array=[];
+    var additional_informations_array=[];
+    
     return (
       <ScrollView contentContainerStyle={styles.scrollView}>
 
@@ -394,55 +273,46 @@ async mark_as_absent(){
               </View>
               <View style={{ flexDirection: 'column', width: '60%' }}>
                 <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '90%', fontSize: 20 }}
-                  returnKeyLabel={"next"} onChangeText={(text) => c1 = text} keyboardType='numeric'></TextInput>
+                  returnKeyLabel={"next"} onChangeText={(text) => cuisine_array[0] = text} keyboardType='numeric'></TextInput>
 
                 <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '90%', fontSize: 20, marginTop: 10 }}
-                  returnKeyLabel={"next"} onChangeText={(text) => c2 = text} keyboardType='numeric'></TextInput>
+                  returnKeyLabel={"next"} onChangeText={(text) => cuisine_array[1] = text} keyboardType='numeric'></TextInput>
                 <RadioButtonRN
                   style={{ flexDirection: 'row', width: '90%', height: 30 }}
                   boxStyle={{ width: '50%' }}
                   textStyle={{ margin: 10 }}
                   data={data}
-                  selectedBtn={(e) => c3 = e.value}
+                  selectedBtn={(e) => cuisine_array[2] = e.value}
                 />
                 <RadioButtonRN
                   style={{ flexDirection: 'row', width: '90%', height: 30, marginTop: 10 }}
                   boxStyle={{ width: '50%' }}
                   textStyle={{ margin: 10 }}
                   data={data}
-                  selectedBtn={(e) => c4 = e.value}
+                  selectedBtn={(e) => cuisine_array[3] = e.value}
                 />
                 <RadioButtonRN
                   style={{ flexDirection: 'row', width: '90%', height: 30, marginTop: 10 }}
                   boxStyle={{ width: '50%' }}
                   textStyle={{ margin: 10 }}
                   data={data}
-                  selectedBtn={(e) => c5 = e.value}
+                  selectedBtn={(e) => cuisine_array[4] = e.value}
                 />
                 <RadioButtonRN
                   style={{ flexDirection: 'row', width: '90%', height: 30, marginTop: 10 }}
                   boxStyle={{ width: '50%' }}
                   textStyle={{ margin: 10 }}
                   data={data}
-                  selectedBtn={(e) => c6 = e.value}
+                  selectedBtn={(e) => cuisine_array[5] = e.value}
                 />
                 <RadioButtonRN
                   style={{ flexDirection: 'row', width: '90%', height: 30, marginTop: 10 }}
                   boxStyle={{ width: '50%' }}
                   textStyle={{ margin: 10 }}
                   data={data}
-                  selectedBtn={(e) => c7 = e.value}
+                  selectedBtn={(e) => cuisine_array[6] = e.value}
                 />
-
               </View>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', alignContent: 'center', width: '100%', margin: 8 }}>
-              <TouchableOpacity onPress={this.handlechoosePhoto.bind(this, 'c_0')} style={{ width: '45%', marginRight: '5%' }}>
-                <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: '#224D88', padding: 8, borderRadius: 10, width: '100%' }}>{this.state.img_c_0.length > 0 ? 'Image uploadé' : 'Image Avant'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={this.handlechoosePhoto.bind(this, 'c_1')} style={{ width: '45%' }}>
-                <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: '#224D88', padding: 8, borderRadius: 10, width: '100%' }}>{this.state.img_c_1.length > 0 ? 'Image uploadé' : 'Image Après'}</Text>
-              </TouchableOpacity>
             </View>
           </CardView>
 
@@ -459,46 +329,38 @@ async mark_as_absent(){
               </View>
               <View style={{ flexDirection: 'column', width: '60%' }}>
                 <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '90%', fontSize: 20 }}
-                  returnKeyLabel={"next"} onChangeText={(text) => s1 = text} keyboardType='numeric'></TextInput>
+                  returnKeyLabel={"next"} onChangeText={(text) => salle_de_bain_array[0] = text} keyboardType='numeric'></TextInput>
                 <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '90%', fontSize: 20, marginTop: 10 }}
-                  returnKeyLabel={"next"} onChangeText={(text) => s2 = text} keyboardType='numeric'></TextInput>
+                  returnKeyLabel={"next"} onChangeText={(text) => salle_de_bain_array[1] = text} keyboardType='numeric'></TextInput>
                 <RadioButtonRN
                   style={{ flexDirection: 'row', width: '90%', height: 30 }}
                   boxStyle={{ width: '50%' }}
                   textStyle={{ margin: 10 }}
                   data={data}
-                  selectedBtn={(e) => s3 = e.value}
+                  selectedBtn={(e) => salle_de_bain_array[2] = e.value}
                 />
                 <RadioButtonRN
                   style={{ flexDirection: 'row', width: '90%', height: 30, marginTop: 10 }}
                   boxStyle={{ width: '50%' }}
                   textStyle={{ margin: 10 }}
                   data={data}
-                  selectedBtn={(e) => s4 = e.value}
+                  selectedBtn={(e) => salle_de_bain_array[3] = e.value}
                 />
                 <RadioButtonRN
                   style={{ flexDirection: 'row', width: '90%', height: 30, marginTop: 10 }}
                   boxStyle={{ width: '50%' }}
                   textStyle={{ margin: 10 }}
                   data={data}
-                  selectedBtn={(e) => s5 = e.value}
+                  selectedBtn={(e) => salle_de_bain_array[4] = e.value}
                 />
                 <RadioButtonRN
                   style={{ flexDirection: 'row', width: '90%', height: 30, marginTop: 10 }}
                   boxStyle={{ width: '50%' }}
                   textStyle={{ margin: 10 }}
                   data={data}
-                  selectedBtn={(e) => s6 = e.value}
+                  selectedBtn={(e) => salle_de_bain_array[5] = e.value}
                 />
               </View>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', alignContent: 'center', width: '100%', margin: 8 }}>
-              <TouchableOpacity onPress={this.handlechoosePhoto.bind(this, 's_0')} style={{ width: '45%', marginRight: '5%' }}>
-                <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: '#224D88', padding: 8, borderRadius: 10, width: '100%' }}>{this.state.img_s_0.length > 0 ? 'Image uploadé' : 'Image Avant'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={this.handlechoosePhoto.bind(this, 's_1')} style={{ width: '45%' }}>
-                <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: '#224D88', padding: 8, borderRadius: 10, width: '100%' }}>{this.state.img_s_1.length > 0 ? 'Image uploadé' : 'Image Après'}</Text>
-              </TouchableOpacity>
             </View>
           </CardView>
 
@@ -516,53 +378,43 @@ async mark_as_absent(){
               </View>
               <View style={{ flexDirection: 'column', width: '60%' }}>
                 <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '90%', fontSize: 20 }}
-                  returnKeyLabel={"next"} onChangeText={(text) => w1 = text} keyboardType='numeric'></TextInput>
+                  returnKeyLabel={"next"} onChangeText={(text) => wc_array[0] = text} keyboardType='numeric'></TextInput>
                 <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '90%', fontSize: 20, marginTop: 10 }}
-                  returnKeyLabel={"next"} onChangeText={(text) => w2 = text} keyboardType='numeric'></TextInput>
+                  returnKeyLabel={"next"} onChangeText={(text) => wc_array[1] = text} keyboardType='numeric'></TextInput>
                 <RadioButtonRN
                   style={{ flexDirection: 'row', width: '90%', height: 30 }}
                   boxStyle={{ width: '50%' }}
                   textStyle={{ margin: 10 }}
                   data={data}
-                  selectedBtn={(e) => w3 = e.value}
+                  selectedBtn={(e) => wc_array[2] = e.value}
                 />
                 <RadioButtonRN
                   style={{ flexDirection: 'row', width: '90%', height: 30, marginTop: 10 }}
                   boxStyle={{ width: '50%' }}
                   textStyle={{ margin: 10 }}
                   data={data}
-                  selectedBtn={(e) => w4 = e.value}
+                  selectedBtn={(e) => wc_array[3] = e.value}
                 />
                 <RadioButtonRN
                   style={{ flexDirection: 'row', width: '90%', height: 30, marginTop: 10 }}
                   boxStyle={{ width: '50%' }}
                   textStyle={{ margin: 10 }}
                   data={data}
-                  selectedBtn={(e) => w5 = e.value}
+                  selectedBtn={(e) => wc_array[4] = e.value}
                 />
                 <RadioButtonRN
                   style={{ flexDirection: 'row', width: '90%', height: 30, marginTop: 10 }}
                   boxStyle={{ width: '50%' }}
                   textStyle={{ margin: 10 }}
                   data={data}
-                  selectedBtn={(e) => w6 = e.value}
+                  selectedBtn={(e) => wc_array[5] = e.value}
                 />
               </View>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', alignContent: 'center', width: '100%', margin: 8 }}>
-              <TouchableOpacity onPress={this.handlechoosePhoto.bind(this, 'w_0')} style={{ width: '45%', marginRight: '5%' }}>
-                <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: '#224D88', padding: 8, borderRadius: 10, width: '100%' }}>{this.state.img_w_0.length > 0 ? 'Image uploadé' : 'Image Avant'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={this.handlechoosePhoto.bind(this, 'w_1')} style={{ width: '45%' }}>
-                <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: '#224D88', padding: 8, borderRadius: 10, width: '100%' }}>{this.state.img_w_1.length > 0 ? 'Image uploadé' : 'Image Après'}</Text>
-              </TouchableOpacity>
-            </View>
-
           </CardView>
 
           <CardView cardElevation={10} cornerRadius={20} style={styles.buildingsContainer}>
             <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', margin: 10, textDecorationLine: 'underline' }}>Autres</Text>
-
             <View style={{ flexDirection: 'row', width: '100%' }}>
               <View style={{ flexDirection: 'column', width: '40%' }}>
                 <Text style={{ margin: 10, marginBottom: 30, fontSize: 15 }}>Debit avant</Text>
@@ -574,116 +426,67 @@ async mark_as_absent(){
               </View>
               <View style={{ flexDirection: 'column', width: '60%' }}>
                 <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '90%', fontSize: 20 }}
-                  returnKeyLabel={"next"} onChangeText={(text) => a1 = text} keyboardType='numeric'></TextInput>
+                  returnKeyLabel={"next"} onChangeText={(text) => autres_array[0] = text} keyboardType='numeric'></TextInput>
                 <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '90%', fontSize: 20, marginTop: 10 }}
-                  returnKeyLabel={"next"} onChangeText={(text) => a2 = text} keyboardType='numeric'></TextInput>
+                  returnKeyLabel={"next"} onChangeText={(text) => autres_array[1] = text} keyboardType='numeric'></TextInput>
                 <RadioButtonRN
                   style={{ flexDirection: 'row', width: '90%', height: 30 }}
                   boxStyle={{ width: '50%' }}
                   textStyle={{ margin: 10 }}
                   data={data}
-                  selectedBtn={(e) => a3 = e.value}
+                  selectedBtn={(e) => autres_array[2] = e.value}
                 />
                 <RadioButtonRN
                   style={{ flexDirection: 'row', width: '90%', height: 30, marginTop: 10 }}
                   boxStyle={{ width: '50%' }}
                   textStyle={{ margin: 10 }}
                   data={data}
-                  selectedBtn={(e) => a4 = e.value}
+                  selectedBtn={(e) => autres_array[3] = e.value}
                 />
                 <RadioButtonRN
                   style={{ flexDirection: 'row', width: '90%', height: 30, marginTop: 10 }}
                   boxStyle={{ width: '50%' }}
                   textStyle={{ margin: 10 }}
                   data={data}
-                  selectedBtn={(e) => a5 = e.value}
+                  selectedBtn={(e) => autres_array[4] = e.value}
                 />
                 <RadioButtonRN
                   style={{ flexDirection: 'row', width: '90%', height: 30, marginTop: 10 }}
                   boxStyle={{ width: '50%' }}
                   textStyle={{ margin: 10 }}
                   data={data}
-                  selectedBtn={(e) => a6 = e.value}
+                  selectedBtn={(e) => autres_array[5] = e.value}
                 />
               </View>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', alignContent: 'center', width: '100%', margin: 8 }}>
-              <TouchableOpacity onPress={this.handlechoosePhoto.bind(this, 'a_0')} style={{ width: '45%', marginRight: '5%' }}>
-                <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: '#224D88', padding: 8, borderRadius: 10, width: '100%' }}>{this.state.img_a_0.length > 0 ? 'Image uploadé' : 'Image Avant'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={this.handlechoosePhoto.bind(this, 'a_1')} style={{ width: '45%' }}>
-                <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: '#224D88', padding: 8, borderRadius: 10, width: '100%' }}>{this.state.img_a_1.length > 0 ? 'Image uploadé' : 'Image Après'}</Text>
-              </TouchableOpacity>
             </View>
           </CardView>
 
           <CardView cardElevation={10} cornerRadius={20} style={styles.buildingsContainer}>
             <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', margin: 10, textDecorationLine: 'underline' }}>Commentaire</Text>
             <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '100%', height: 100, marginTop: 10, marginBottom: 10 }}
-              returnKeyLabel={"next"} onChangeText={(text) => cm1 = text}></TextInput>
+              returnKeyLabel={"next"} onChangeText={(text) => additional_informations_array[0] = text}></TextInput>
           </CardView>
 
           <CardView cardElevation={10} cornerRadius={20} style={styles.buildingsContainer}>
             <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', margin: 10, textDecorationLine: 'underline' }}>Réf des bouches</Text>
             <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '100%', height: 100, marginTop: 10, marginBottom: 10 }}
-              returnKeyLabel={"next"} onChangeText={(text) => cm2 = text}></TextInput>
+              returnKeyLabel={"next"} onChangeText={(text) => additional_informations_array[1] = text}></TextInput>
           </CardView>
-
-
-          <CardView cardElevation={10} cornerRadius={20} style={styles.buildingsContainer}>
-            <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', margin: 10, textDecorationLine: 'underline' }}>Signature</Text>
-            <View style={styles.signature_border}>
-              <SignatureCapture
-                style={[{ flex: 1 }, styles.signature]}
-                ref="sign"
-                onSaveEvent={this._onSaveEvent.bind(this)}
-                onDragEvent={this._onDragEvent.bind(this)}
-                saveImageFileInExtStorage={false}
-                showNativeButtons={false}
-                showTitleLabel={false}
-                backgroundColor="#ffffff"
-                strokeColor="#224D88"
-                minStrokeWidth={4}
-                maxStrokeWidth={4}
-                viewMode={"portrait"} />
-            </View>
-
-            <View style={{ flex: 1, flexDirection: "row" }}>
-              <TouchableOpacity style={styles.signature_buttonStyle}
-                onPress={() => { this.resetSign() }} >
-                <Text>Supprimer la signature</Text>
-              </TouchableOpacity>
-            </View>
-          </CardView>
-
-
 
           <CardView cardElevation={10} cornerRadius={20} style={styles.BouttonsContainer}>
-            <TouchableOpacity style={styles.end_btn, { alignContent: 'center', margin: 15 }} onPress={() => this.terminer(c1, c2, c3, c4, c5, c6, c7, s1, s2, s3, s4, s5, s6, w1, w2, w3, w4, w5, w6, a1, a2, a3, a4, a5, a6, cm1, cm2)}>
-              <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: 'orange', padding: 20, borderRadius: 20, width: '100%' }}>{this.state.validator ? 'Re-valider' : 'Valider le rapport'}</Text>
-            </TouchableOpacity>
+              <ButtonSpinner style={{ backgroundColor: '#00BFA6', borderRadius: 20, color: '#ffffff' }} positionSpinner={'centered-without-text'} styleSpinner={{ color: '#ffffff' }} onPress={this.validate_data.bind(this,cuisine_array,salle_de_bain_array,wc_array,autres_array,additional_informations_array)}>
+                <Text style={{ textAlign: 'center', color: '#ffffff', padding: 5, }}>Valider les données et continuer</Text>
+              </ButtonSpinner>
 
-
-            {
-              this.state.validator ?
-                (
-                  <ButtonSpinner style={{ backgroundColor: '#00BFA6', borderRadius: 20, color: '#ffffff' }} positionSpinner={'centered-without-text'} styleSpinner={{ color: '#ffffff' }}
-                    onPress={() => this.send_data_to_server()}>
-                    <Text style={{ textAlign: 'center', color: '#ffffff', padding: 5, }}>Envoyer le rapport</Text>
-                  </ButtonSpinner>
-                )
-                :
-                (
-                  <TouchableOpacity style={styles.send_btn, { alignContent: 'center', margin: 15 }} onPress={() => alert('Veuillez valider votre rapport d\'abord !')}>
-                    <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: 'gray', padding: 20, borderRadius: 20, width: '100%' }}>Envoyer le rapport</Text>
-                  </TouchableOpacity>
-                )
-            }
-
-
-                <TouchableOpacity style={styles.refuse_btn, { alignContent: 'center', margin: 15, marginBottom: 60 }} onPress={() => this.absent_btn()}>
-                    <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: '#eb4d4b', padding: 20, borderRadius: 20, width: '100%' }}>Marker le passage comme absent</Text>
-                  </TouchableOpacity>
+              
+              
+              <TouchableOpacity style={styles.refuse_btn, { alignContent: 'center', margin: 15, marginBottom: 20 }} onPress={() => this.props.navigation.navigate('fiche_passage_pictures', { id_passage: this.state.id_passage, ref_passage: this.state.ref_passage + 1, id_logement: this.state.id_logement, id_entervention: this.state.id_entervention, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.Appt })}>
+                  <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: '#224D88', padding: 20, borderRadius: 20, width: '100%' }}>Valider que les photos</Text>
+              </TouchableOpacity>
+             
+              <TouchableOpacity style={styles.refuse_btn, { alignContent: 'center', margin: 15, marginBottom: 20 }} onPress={() => this.mark_as_absent()}>
+                  <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: '#eb4d4b', padding: 20, borderRadius: 20, width: '100%' }}>Marquer le passage comme absent</Text>
+              </TouchableOpacity>
           </CardView>
 
 

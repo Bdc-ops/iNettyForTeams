@@ -22,7 +22,7 @@ class Planning extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      list_planning: '',
+      list_planning: [],
       timer: 1,
     };
   }
@@ -59,9 +59,8 @@ class Planning extends React.Component {
           await Object.keys(list_planning).forEach(async function (index) {
             data.push(list_planning[index].date_du);
           });
-          var obj = data.reduce((c, v) => Object.assign(c, { [v]: { selected: true, marked: true } }), {});
-          this.setState({ list_planning: obj, timer: 0 });
-          console.log('liste:', obj);
+          this.setState({ list_planning: data, timer: 0 });
+          //console.log(obj);
         }
         console.log('==============================');
       })
@@ -72,6 +71,8 @@ class Planning extends React.Component {
   }
 
   render() {
+    var obj = this.state.list_planning.reduce((c, v) => Object.assign(c, { [v]: { selected: true, marked: true } }), {});
+
     return (
       <ScrollView contentContainerStyle={styles.scrollView}>
 
@@ -79,15 +80,15 @@ class Planning extends React.Component {
           <TouchableOpacity style={{ position: 'absolute', left: 5 }} onPress={() => this.props.navigation.navigate('Dashboard')} >
             <Image style={{ width: 35, height: 35 }} source={require('../../resources/images/back.png')} />
           </TouchableOpacity>
+          <Text style={{ position: 'absolute', left: 60, fontSize: 16, fontWeight: 'bold', color: "#224D88" }}>Calendrier</Text>
         </LinearGradient>
-        <Text style={styles.TextStyle}>Planning</Text>
 
         <View style={styles.body}>
 
           <Calendar
 
             // Collection of dates that have to be marked. Default = {}
-            markedDates={this.state.list_planning}
+            markedDates={obj}
             onDayPress={(day) => { this.props.navigation.navigate('List_plannings', { plannings_day: day.dateString, indicator: 'planning' }) }}
             enableSwipeMonths={true}
             scrollEnabled={true}

@@ -18,6 +18,7 @@ import Configurations from './views/configuration/Configurations';
 import list_logements from './views/interventions/list_logements';
 import list_passages from './views/interventions/list_passages';
 import fiche_passage from './views/interventions/fiche_passage';
+import fiche_passage_pictures from './views/interventions/fiche_passage_pictures';
 
 global.connected = true
 
@@ -41,7 +42,8 @@ export default class App extends React.Component {
         Configurations: Configurations,
         list_logements: list_logements,
         list_passages: list_passages,
-        fiche_passage: fiche_passage
+        fiche_passage: fiche_passage,
+        fiche_passage_pictures: fiche_passage_pictures
       },
       {
         initialRouteName: 'Splash',

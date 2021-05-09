@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 const waiting = require('../../resources/images/waiting.png');
 const buildings = require('../../resources/images/buildings.png');
 import CardView from 'react-native-cardview';
+import SignatureCapture from 'react-native-signature-capture';
 
 class fiche_intervention extends React.Component {
 
@@ -19,7 +20,9 @@ class fiche_intervention extends React.Component {
       list_interventions: [],
       list_adresses: [],
       timer: 1,
-      token: ''
+      token: '',
+      img_signature: '',
+      validator:''
     };
   }
 
@@ -113,7 +116,18 @@ class fiche_intervention extends React.Component {
 
 
   async end_intervention(id_entervention) {
-    await axios.post(`https://inetty.apps-dev.fr/api/mobile/interventions/finish/${id_entervention}`, { auth_token: `${this.state.token}` })
+    //await axios.post(`https://inetty.apps-dev.fr/api/mobile/interventions/finish/${id_entervention}`, { auth_token: `${this.state.token}` })
+    const signature_data = {
+      signature : this.state.img_signature
+    }
+    await axios(
+      {
+        method: 'post',
+        url: `https://inetty.apps-dev.fr/api/mobile/interventions/finish/${id_entervention}`,
+        headers: { 'auth_token': this.state.token, 'Accept': 'application/json' },
+        data: signature_data
+      }
+    )
       .then(async (response) => {
         console.log('==============================');
         console.log('Terminer l\'interventions');
@@ -131,6 +145,35 @@ class fiche_intervention extends React.Component {
         console.log('==============================');
       });
   }
+
+
+
+
+  _onSaveEvent(result) {
+    if (result.encoded.length > 2000) {
+      console.log('Signature enregistrer');
+      this.setState({ img_signature: result.encoded, validator: 1 });
+      alert('Rapport valider');
+      console.log(result.encoded.length)
+    } else {
+      alert('Veuillez saisir votre signature');
+
+    }
+  }
+
+  _onDragEvent() {
+    console.log("dragged");
+  }
+
+
+  resetSign() {
+    this.refs["sign"].resetImage();
+  }
+
+
+validsignature(){
+  this.refs["sign"].saveImage();
+}
 
   render() {
 
@@ -232,6 +275,11 @@ class fiche_intervention extends React.Component {
               </CardView>
 
 
+
+
+
+
+
               {
                 this.state.list_interventions[0].statut == "terminée" ?
                   (
@@ -241,9 +289,69 @@ class fiche_intervention extends React.Component {
                   )
                   :
                   (
-                    <TouchableOpacity style={{ alignContent: 'center', margin: 15, marginBottom: 60 }} onPress={() => this.end_intervention(this.state.list_interventions[0].id)}>
+                    <CardView cardElevation={10} cornerRadius={20} style={styles.SignatureContainer}>
+                    <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', margin: 10, textDecorationLine: 'underline' }}>Signature</Text>
+                    <View style={styles.signature_border}>
+                      <SignatureCapture
+                        style={[{ flex: 1 }, styles.signature]}
+                        ref="sign"
+                        onSaveEvent={this._onSaveEvent.bind(this)}
+                        onDragEvent={this._onDragEvent.bind(this)}
+                        saveImageFileInExtStorage={false}
+                        showNativeButtons={false}
+                        showTitleLabel={false}
+                        backgroundColor="#ffffff"
+                        strokeColor="#224D88"
+                        minStrokeWidth={4}
+                        maxStrokeWidth={4}
+                        viewMode={"portrait"} />
+                    </View>
+    
+                    <View style={{ flex: 1, flexDirection: "row" }}>
+                    {
+                      this.state.validator ?
+                      (
+                        <TouchableOpacity style={styles.signature_buttonStyle}
+                        onPress={() => { alert('la signature est été valider') }} >
+                        <Text>Supprimer la signature</Text>
+                      </TouchableOpacity>
+                      )
+                      :
+                      (<TouchableOpacity style={styles.signature_buttonStyle}
+                        onPress={() => { this.resetSign() }} >
+                        <Text>Supprimer la signature</Text>
+                      </TouchableOpacity>)
+
+
+                    }
+                      
+
+                    </View>
+                    
+                    <TouchableOpacity style={{ alignContent: 'center', margin: 10, marginBottom: 10 }} onPress={() => this.validsignature()}>
+                      <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: 'orange', padding: 20, borderRadius: 20, width: '100%' }}>Valider la signature</Text>
+                    </TouchableOpacity>
+
+                    {
+                      this.state.validator ?
+                      (
+                    <TouchableOpacity style={{ alignContent: 'center', margin: 10, marginBottom: 50 }} onPress={() => this.end_intervention(this.state.list_interventions[0].id)}>
                       <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: '#6ab04c', padding: 20, borderRadius: 20, width: '100%' }}>Terminer l'intervention</Text>
                     </TouchableOpacity>
+                      )
+                      :
+                      (
+                    <TouchableOpacity style={{ alignContent: 'center', margin: 10, marginBottom: 50 }} onPress={() => alert('Veuillez signer pour terminer l\'intervetion')}>
+                      <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: '#999999', padding: 20, borderRadius: 20, width: '100%' }}>Terminer l'intervention</Text>
+                    </TouchableOpacity>
+                      )
+                    }
+
+                    
+                  </CardView>
+
+
+                    
                   )
               }
 
@@ -302,7 +410,23 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 100,
   },
-
+  signature_border: {
+    flex: 1,
+    borderColor: '#224D88',
+    borderWidth: 2,
+    height: 200,
+  },
+  signature: {
+    flex: 1,
+    borderWidth: 2,
+    height: 200,
+  },
+  signature_buttonStyle: {
+    flex: 1, justifyContent: "center", alignItems: "center", height: 50,
+    backgroundColor: "#eeeeee",
+    margin: 10,
+    borderRadius: 20
+  },
   TextStyle: {
     color: '#000000',
     textAlign: 'center',
@@ -365,6 +489,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 5,
     padding: 5,
+  },
+  SignatureContainer:{
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0, height: 2
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 3,
+    margin: 15,
+    backgroundColor: "#fff",
+    borderRadius: 5,
+    padding: 5,
+    marginBottom:70,
   },
   buildingsContainer: {
     shadowColor: "#224D88",

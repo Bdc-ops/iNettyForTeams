@@ -1,18 +1,24 @@
-import React from 'react';
+import React,{useRef, useCallback, useState} from 'react';
 import { StyleSheet, ScrollView, View, Text, Alert, TouchableOpacity, Image, BackHandler } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import FooterView from '../static_component/FooterView'
 import AsyncStorage from '@react-native-community/async-storage';
-const disconnect = require('../../resources/images/disconnect.png');
 import axios from 'axios';
+const disconnect = require('../../resources/images/disconnect.png');
+const config = require('../../resources/images/config.png');
 
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
 
+const IMG1 = require('../../resources/images/bg_home.png');
 class Home extends React.Component {
+
+    
     constructor(props) {
         super(props);
         this.state = {
-            today_date: new Date().getFullYear() + '-' + ((new Date().getMonth() + 1) > 10 ? (new Date().getMonth() + 1) : '0' + (new Date().getMonth() + 1)) + '-' + ((new Date().getDate()) > 10 ? (new Date().getDate()) : '0' + (new Date().getDate())),
-            count_interventions: '---'
+            today_date: new Date().getFullYear() + '-' + ((new Date().getMonth() + 1) >= 10 ? (new Date().getMonth() + 1) : '0' + (new Date().getMonth() + 1)) + '-' + ((new Date().getDate()) >= 10 ? (new Date().getDate()) : '0' + (new Date().getDate())),
+            count_interventions: '---',
+            progress:50
         };
     }
     componentDidMount() {
@@ -49,7 +55,7 @@ class Home extends React.Component {
                             data.push(list_intervention[index]);
                         }
                     });
-                    this.setState({ count_interventions: data.length });
+                    this.setState({ count_interventions: data.length,progress:100 });
                     console.log('Count intervention du jour : ' + data.length);
                 }
                 console.log('==============================');
@@ -93,7 +99,8 @@ class Home extends React.Component {
 
     render() {
         const { navigation } = this.props;
-        console.log(navigation)
+
+
         return (
             <ScrollView
                 contentInsetAdjustmentBehavior="automatic"
@@ -104,44 +111,47 @@ class Home extends React.Component {
                     <View style={styles.body}>
                         <View style={{ flex: 1, }}>
 
-                            <LinearGradient start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} colors={['#BCD0EB', '#BCD0EB', '#ffffff', '#ffffff']} style={styles.container}>
-                                <TouchableOpacity style={{ alignItems: 'flex-end', position: 'absolute', right: 10, top: 10, width: 30, height: 30 }} onPress={() => {
-                                    this._logout()
-                                }}>
+                            <View style={styles.container}>
+                            <Image source={IMG1} style={styles.image}></Image>
+
+                                <TouchableOpacity style={{ alignItems: 'flex-end', position: 'absolute', right: 10, top: 10, width: 30, height: 30 }} onPress={() => {this._logout()}}>
                                     <Image style={{ width: 30, height: 30 }} source={disconnect}></Image>
                                 </TouchableOpacity>
 
-                                <View style={{
-                                    alignContent: 'center',
-                                    alignItems: 'center'
-                                }}>
-                                    <TouchableOpacity
-                                        onPress={() => {
-                                            this.props.navigation.navigate('List_plannings', { plannings_day: this.state.today_date, indicator: 'dashboard' })
-                                        }}
-                                    >
-                                        <Text style={{
-                                            backgroundColor: "#224D88", color: "#fff", padding: 30, fontSize: 30,
-                                            borderTopLeftRadius: 100, borderBottomLeftRadius: 100, borderTopRightRadius: 100
-                                        }}>
-                                            {this.state.count_interventions || this.state.count_interventions >= 0 ? this.state.count_interventions : '---'}
-                                        </Text>
-                                    </TouchableOpacity>
-                                    <Text style={{
-                                        color: '#224D88'
-                                    }}>
-                                        Interventions du jour
-                                </Text>
-                                </View>
+                                <TouchableOpacity style={{ alignItems: 'flex-end', position: 'absolute', left: 10, top: 10, width: 30, height: 30 }} onPress={() => {this.props.navigation.navigate('Configurations')}}>
+                                    <Image style={{ width: 30, height: 30 }} source={config}></Image>
+                                </TouchableOpacity>
 
-                            </LinearGradient>
 
+                                <TouchableOpacity style={{alignContent: 'center',alignItems: 'center',position: 'absolute',top:'20%'}}
+                                onPress={() => {this.props.navigation.navigate('List_plannings', { plannings_day: this.state.today_date, indicator: 'dashboard' })}}>
+                                    <AnimatedCircularProgress
+                                        size={190}
+                                        width={20}
+                                        fill={this.state.progress}
+                                        tintColor="#ffffff"
+                                        onAnimationComplete={() => console.log('onAnimationComplete')}
+                                        backgroundColor="#BCD0EB">
+                                            {(fill) => (
+                                            <View style={{alignContent: 'center',alignItems: 'center'}}>
+                                                <Text style={{color: "#ffffff", fontSize: 50}}>
+                                                {this.state.count_interventions || this.state.count_interventions >= 0 ? this.state.count_interventions : '---'}
+                                                </Text>
+                                                <Text style={{color: '#ffffff', fontSize: 12}}>Interventions du jour</Text>
+                                            </View>
+                                                )}
+                                    </AnimatedCircularProgress>
+                                    
+
+                                </TouchableOpacity>
+                            </View>
+                            {/*<View style={styles.rad}></View> */}
                         </View>
 
 
 
 
-                        <View style={{ flex: 1 }}>
+                        <View style={{ flex: 1,flexDirection: 'row'}}>
                             <View style={{
                                 flex: 1
                             }}>
@@ -162,22 +172,25 @@ class Home extends React.Component {
                                     onPress={() => {
                                         this.props.navigation.navigate('Planning')
                                     }}>
+
+                                
+
+
+                                    
+                                    <View style={{
+                                        alignContent: 'center',
+                                        alignItems: 'center',
+                                    }}>
+                                        <Image source={require("../../resources/images/planning.png")}
+                                            style={{ width: 150, height: 120 }}
+                                        />
+                                    </View>
                                     <View>
                                         <Text style={{
                                             fontSize: 15,
                                             color: "#224D88",
-                                            fontWeight: 'bold'
-
-                                        }}>Planning</Text>
-                                    </View>
-                                    <View style={{
-                                        alignContent: 'center',
-                                        alignItems: 'center',
-                                        marginTop: 25,
-                                    }}>
-                                        <Image source={require("../../resources/images/planning.png")}
-                                            style={{ width: 210, height: 200 }}
-                                        />
+                                            fontWeight: 'bold', textAlign: 'center'
+                                        }}>Calendrier</Text>
                                     </View>
                                 </TouchableOpacity>
                             </View>
@@ -202,65 +215,25 @@ class Home extends React.Component {
                                     onPress={() => {
                                         this.props.navigation.navigate('list_interventions')
                                     }}>
+                                    <View style={{
+                                        alignContent: 'center',
+                                        alignItems: 'center',
+                                    }}>
+                                        <Image source={require("../../resources/images/intervention.png")}
+                                            style={{ width: 150, height: 120 }}
+                                        />
+                                    </View>
                                     <View>
                                         <Text style={{
                                             fontSize: 15,
                                             color: "#224D88",
-                                            fontWeight: 'bold'
+                                            fontWeight: 'bold', textAlign: 'center'
 
-                                        }}>Toutes les interventions</Text>
-                                    </View>
-                                    <View style={{
-                                        alignContent: 'center',
-                                        alignItems: 'center',
-                                        marginTop: 25
-                                    }}>
-                                        <Image source={require("../../resources/images/intervention.png")}
-                                            style={{ width: 210, height: 200 }}
-                                        />
+                                        }}>Interventions</Text>
                                     </View>
                                 </TouchableOpacity>
 
-                                <View style={{
-                                    flex: 1
-                                }}>
-                                    <TouchableOpacity style={{
-                                        shadowColor: "#000",
-                                        shadowOffset: {
-                                            width: 0, height: 2
-                                        },
-                                        shadowOpacity: 0.15,
-                                        shadowRadius: 10,
-                                        elevation: 3,
-                                        padding: 15,
-                                        margin: 10,
-                                        backgroundColor: "#fff",
-                                        borderRadius: 25
-
-                                    }}
-                                        onPress={() => {
-                                            this.props.navigation.navigate('Configurations')
-                                        }}>
-
-                                        <View>
-                                            <Text style={{
-                                                fontSize: 15,
-                                                color: "#224D88",
-                                                fontWeight: 'bold'
-
-                                            }}>Configurations</Text>
-                                        </View>
-                                        <View style={{
-                                            alignContent: 'center',
-                                            alignItems: 'center',
-                                            marginTop: 25,
-                                        }}>
-                                            <Image source={require("../../resources/images/configuration.png")}
-                                                style={{ width: 230, height: 200 }}
-                                            />
-                                        </View>
-                                    </TouchableOpacity>
-                                </View>
+                               
 
                             </View>
 
@@ -283,6 +256,11 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         flex: 9,
     },
+    image: {
+        flex: 1,
+        width: '100%',
+        opacity:1
+    },
     decore_right: {
         position: 'absolute',
         top: 0,
@@ -300,10 +278,23 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 25
     },
     container: {
-        padding: 15,
-        margin: 10,
-        borderRadius: 25
-    }
+        width: '100%',
+        height: 450,
+        alignItems: 'center',
+        justifyContent: 'center',
+        //height:320
+        //margin: 10,
+    },
+    rad: {
+        width: '100%',
+        height: 80,
+        backgroundColor: '#ffffff',
+        bottom: 0,
+        marginBottom: -40,
+        position: 'absolute',
+        zIndex: 5,
+        borderRadius: 80,
+      },
 });
 
 export default Home;

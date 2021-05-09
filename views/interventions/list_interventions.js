@@ -68,6 +68,8 @@ class list_interventions extends React.Component {
           <TouchableOpacity style={{ position: 'absolute', left: 5 }} onPress={() => this.props.navigation.navigate('Dashboard')} >
             <Image style={{ width: 35, height: 35 }} source={require('../../resources/images/back.png')} />
           </TouchableOpacity>
+          <Text style={{ position: 'absolute', left: 60, fontSize: 16, fontWeight: 'bold', color: "#224D88" }}>Interventions hebdomadaires</Text>
+
         </LinearGradient>
 
 
@@ -82,7 +84,7 @@ class list_interventions extends React.Component {
               </View>
               )
               :
-              (<Text style={styles.TextStyle}>{this.state.list_interventions.length > 0 ? 'Liste des interventions hebdomadaires' : ''}</Text>)
+              (<Text></Text>)
           }
 
 

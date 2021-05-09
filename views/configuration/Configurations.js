@@ -88,7 +88,8 @@ class Configurations extends React.Component {
           <CardView cardElevation={10} cornerRadius={20} style={styles.aboutContainer}>
             <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', margin: 20, textDecorationLine: 'underline' }}>A propos</Text>
             <Text style={{ fontSize: 15, color: "#000000", marginLeft: 20, marginBottom: 20, width: '90%' }}>
-              iNetty Team a été développée par l'entreprise Big Data Consulting - Anexys
+            iNetty est une suite de solutions 100% digitales qui remplace les processus classiques par des processus dématérialisés.
+            Notre solution vous accompagne depuis la planification jusqu’à la réalisation de vos interventions sur le terrain et optimise la remontée et le traitement de vos informations.
               </Text>
             <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', margin: 20, textDecorationLine: 'underline' }}>Contact</Text>
             <View style={{ fontSize: 15, color: "#000000", marginLeft: 20, marginBottom: 20, width: '90%', flexDirection: 'column' }}>

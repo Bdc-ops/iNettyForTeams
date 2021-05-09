@@ -80,9 +80,10 @@ class List_plannings extends React.Component {
 
                 <LinearGradient start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} colors={['#BCD0EB', '#BCD0EB', '#BCD0EB', '#BCD0EB']} style={styles.header}>
                     <TouchableOpacity style={{ position: 'absolute', left: 5 }} onPress={() => this.state.indicator == 'planning' ? this.props.navigation.navigate('Planning') : this.props.navigation.navigate('Dashboard')} >
-
                         <Image style={{ width: 35, height: 35 }} source={require('../../resources/images/back.png')} />
                     </TouchableOpacity>
+                    <Text style={{ position: 'absolute', left: 60, fontSize: 16, fontWeight: 'bold', color: "#224D88" }}>Interventions du {this.state.plannings_day}</Text>
+
                 </LinearGradient>
 
                 <View style={styles.body}>
@@ -96,7 +97,7 @@ class List_plannings extends React.Component {
                             </View>
                             )
                             :
-                            (<Text style={styles.info_text}>{this.state.list_plannings.length > 0 ? 'Liste des interventions pour le ' + this.state.plannings_day : ''}</Text>)
+                            (<Text></Text>)
 
                     }
 
