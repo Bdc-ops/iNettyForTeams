@@ -4,6 +4,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import FooterView from '../static_component/FooterView'
 import AsyncStorage from '@react-native-community/async-storage';
 import axios from 'axios';
+import moment from "moment";
 const disconnect = require('../../resources/images/disconnect.png');
 const config = require('../../resources/images/config.png');
 
@@ -18,7 +19,11 @@ class Home extends React.Component {
         this.state = {
             today_date: new Date().getFullYear() + '-' + ((new Date().getMonth() + 1) >= 10 ? (new Date().getMonth() + 1) : '0' + (new Date().getMonth() + 1)) + '-' + ((new Date().getDate()) >= 10 ? (new Date().getDate()) : '0' + (new Date().getDate())),
             count_interventions: '---',
-            progress:50
+            progress:50,
+            token:'',
+            username:'',
+            pointage_id:'',
+            indicator :0
         };
     }
     componentDidMount() {
@@ -27,10 +32,24 @@ class Home extends React.Component {
             .then(token => {
                 const { navigate } = this.props.navigation;
                 if (token) {
+                    this.setState({token : token});
                     this.Get_list_interventions(token);
                 } else {
                 }
             });
+            AsyncStorage.getItem('username')
+            .then(username => {
+              if (username) {
+                this.setState({ username: username })
+              }
+            });
+            AsyncStorage.getItem('pointage_id')
+            .then(pointage_id => {
+              if (pointage_id) {
+                this.setState({ indicator: 1 })
+              }
+            });
+            
     }
     componentWillUnmount() {
         this.handler.remove()
@@ -96,6 +115,106 @@ class Home extends React.Component {
 
 
     }
+    start_day_alert(){
+        Alert.alert(
+            "IMPORTANT",
+            "Voulez-vous vraiment Commencer la journée",
+            [
+                {
+                    text: "Annuler",
+                    style: "cancel"
+                },
+                {
+                    text: "Confirmer", onPress: () => this.start_day()
+                }
+            ],
+            { cancelable: false }
+        );
+    }
+    end_day_alert(){
+        Alert.alert(
+            "IMPORTANT",
+            "Voulez-vous vraiment Terminer la journée",
+            [
+                {
+                    text: "Annuler",
+                    style: "cancel"
+                },
+                {
+                    text: "Confirmer", onPress: () => this.end_day()
+                }
+            ],
+            { cancelable: false }
+        );
+    }
+
+    async start_day(){
+        var date_debut=moment().format('YYYY-MM-DD H:mm:ss');
+
+        const pointage_data = {
+             date_debut:date_debut,
+             team_name:this.state.username
+        }
+        //console.log(pointage_data);
+        await axios(
+          {
+            method: 'post',
+            url: `https://inetty.apps-dev.fr/api/mobile/PointageController/pointage_start`,
+            headers: { 'auth_token': this.state.token, 'Accept': 'application/json' },
+            data: pointage_data
+          }
+        )
+          .then(async (response) => {
+            if (response.data.success == true) {
+              console.log('msg success' + response.data.success);
+              AsyncStorage.setItem('pointage_id', `${response.data.id}`);
+              this.setState({indicator:1});
+            }
+          })
+          .catch(async (error) => {
+            console.log("ERROR API pointage start day URL : " + error);
+            console.log('==============================');
+          });
+    }
+
+
+    async end_day(){
+        
+        AsyncStorage.getItem('pointage_id').then(async (pointage_id) => {
+            if (pointage_id) {
+                this.setState({ pointage_id: pointage_id })
+                var date_fin=moment().format('YYYY-MM-DD H:mm:ss');
+                const pointage_data = {
+                    pointage_id:this.state.pointage_id,
+                    date_fin:date_fin
+                }      
+                //console.log(pointage_data);
+                await axios({
+                    method: 'post',
+                    url: `https://inetty.apps-dev.fr/api/mobile/PointageController/pointage_end`,
+                    headers: { 'auth_token': this.state.token, 'Accept': 'application/json' },
+                    data: pointage_data
+                })
+                .then(async (response) => {
+                    if (response.data.success == true) {
+                    console.log('msg success' + response.data.success);
+                    this.setState({indicator:0});
+                    AsyncStorage.removeItem('pointage_id');
+                    }
+                    console.log('==============================');
+                })
+                .catch(async (error) => {
+                    console.log("ERROR API pointage start day URL : " + error);
+                    console.log('==============================');
+                });
+            }
+            else{
+                alert('Error : ')
+            }
+        });
+
+        
+    }
 
     render() {
         const { navigation } = this.props;
@@ -123,7 +242,7 @@ class Home extends React.Component {
                                 </TouchableOpacity>
 
 
-                                <TouchableOpacity style={{alignContent: 'center',alignItems: 'center',position: 'absolute',top:'20%'}}
+                                <TouchableOpacity style={{alignContent: 'center',alignItems: 'center',position: 'absolute',top:'15%'}}
                                 onPress={() => {this.props.navigation.navigate('List_plannings', { plannings_day: this.state.today_date, indicator: 'dashboard' })}}>
                                     <AnimatedCircularProgress
                                         size={190}
@@ -142,15 +261,43 @@ class Home extends React.Component {
                                                 )}
                                     </AnimatedCircularProgress>
                                     
+                                    {
+                                            this.state.indicator == 0 ?
+                                            (
+                                            <View style={{flexDirection:'row',marginTop:-20}}>
+                                                <TouchableOpacity style={{backgroundColor:'#ffffff',color:'#224D88',marginRight:50,padding:20,borderRadius:50,marginTop:20}} onPress={() => {this.start_day_alert()}}><Text>Débuter</Text></TouchableOpacity>
+                                                <TouchableOpacity style={{backgroundColor:'#BCD0EB',color:'#224D88',marginLeft:50,padding:20,borderRadius:50,marginTop:20}}><Text>Terminer</Text></TouchableOpacity>
+                                            </View>
+                                            )
+                                            :
+                                            (
+                                            <View style={{flexDirection:'row',marginTop:-20}}>
+                                                <TouchableOpacity style={{backgroundColor:'#BCD0EB',color:'#224D88',marginRight:50,padding:20,borderRadius:50,marginTop:20}}><Text>Débuter</Text></TouchableOpacity>
+                                                <TouchableOpacity style={{backgroundColor:'#ffffff',color:'#224D88',marginLeft:50,padding:20,borderRadius:50,marginTop:20}} onPress={() => {this.end_day_alert()}}><Text>Terminer</Text></TouchableOpacity>
+                                            </View>
+                                            )
+
+                                        }
+                                        {
+                                            this.state.indicator == 0 ? 
+                                            (<Text style={{backgroundColor:'#f64747',padding:5,borderRadius: 20,color:'#ffffff',marginTop:10}}>Veuillez commencer votre journée</Text>)
+                                            : (<Text style={{backgroundColor:'#00BFA6',padding:5,borderRadius: 20,color:'#ffffff',marginTop:10}}>Journée débutée</Text>)
+                                        }
+
+                                    
+
+                                    
 
                                 </TouchableOpacity>
+
+
                             </View>
                             {/*<View style={styles.rad}></View> */}
                         </View>
 
 
-
-
+                        
+                        
                         <View style={{ flex: 1,flexDirection: 'row'}}>
                             <View style={{
                                 flex: 1

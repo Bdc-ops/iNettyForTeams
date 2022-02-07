@@ -32,10 +32,10 @@ class fiche_passage extends React.Component {
       token: '',
       Appt: '',
       ref_passage: '',
-      data_passage:''
+      data_passage:'',
+      batiment_name:''
     };
   }
-
   componentDidMount() {
     this.handler = BackHandler.addEventListener('hardwareBackPress', () => { return true });
     this.setState({ timer: 0 });
@@ -52,6 +52,7 @@ class fiche_passage extends React.Component {
           const id_addresse = this.props.navigation.getParam('id_addresse', null);
           const Appt = this.props.navigation.getParam('appt', null);
           const ref_passage = this.props.navigation.getParam('ref_passage', null);
+          const batiment_name = this.props.navigation.getParam('batiment_name', null);
 
           this.setState({
             day: day,
@@ -64,6 +65,7 @@ class fiche_passage extends React.Component {
             id_addresse: id_addresse,
             Appt: Appt,
             ref_passage: ref_passage,
+            batiment_name:batiment_name
           });
           console.log('Fiche passage - Num appart : ' + this.state.Appt + ' - Id addresse : ' + this.state.id_addresse);
 
@@ -110,6 +112,7 @@ class fiche_passage extends React.Component {
               a_remplacer: this.state.cuisine_array[4],
               bouche: this.state.cuisine_array[5],
               hotte: this.state.cuisine_array[6],
+              change: this.state.cuisine_array[7],
             },
             salle_de_bain: {
               bonetat: this.state.salle_de_bain_array[2],
@@ -118,6 +121,7 @@ class fiche_passage extends React.Component {
               bouche: this.state.salle_de_bain_array[5],
               debit_avant: this.state.salle_de_bain_array[0],
               debit_apres: this.state.salle_de_bain_array[1],
+              change: this.state.salle_de_bain_array[6],
             },
             wc: {
               bonetat: this.state.wc_array[2],
@@ -126,6 +130,7 @@ class fiche_passage extends React.Component {
               bouche: this.state.wc_array[5],
               debit_avant: this.state.wc_array[0],
               debit_apres: this.state.wc_array[1],
+              change: this.state.wc_array[6],
             },
             autres: {
               bonetat: this.state.autres_array[2],
@@ -134,14 +139,17 @@ class fiche_passage extends React.Component {
               bouche: this.state.autres_array[5],
               debit_avant: this.state.autres_array[0],
               debit_apres: this.state.autres_array[1],
+              change: this.state.autres_array[6],
             },
             details:{
               comment: this.state.additional_informations_array[0],
               refs_des_bouches: this.state.additional_informations_array[1]
             }
           };
-
+          console.log('------------------------------------');
           console.log(data_passage);
+          console.log('------------------------------------');
+
                 await axios(
                   {
                     method: 'post',
@@ -154,7 +162,7 @@ class fiche_passage extends React.Component {
                     console.log('reponse : ' + response.status);
                     if (response.status === 200) {
                       console.log('Rapport data Sent : ' + response.status);
-                      this.props.navigation.navigate('fiche_passage_pictures', { id_passage: this.state.id_passage, ref_passage: this.state.ref_passage + 1, id_logement: this.state.id_logement, id_entervention: this.state.id_entervention, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.Appt })
+                      this.props.navigation.navigate('fiche_passage_pictures', { id_passage: this.state.id_passage, ref_passage: this.state.ref_passage + 1, id_logement: this.state.id_logement, id_entervention: this.state.id_entervention, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.Appt,batiment_name:this.state.batiment_name })
                       //this.props.navigation.navigate('list_logements', { id_entervention: this.state.id_entervention, id_addresse: this.state.id_addresse, ref_intervention: this.state.ref_intervention });   
                       resolve("api ok");
                     }
@@ -167,17 +175,17 @@ class fiche_passage extends React.Component {
   }
 
 
-  absent_btn() {
+  refuse_btn() {
     Alert.alert(
       "IMPORTANT",
-      "Voulez-vous vraiment marker le " + this.state.ref_passage+" comme absent ?",
+      "Voulez-vous vraiment marker le Passage " + this.state.ref_passage+" comme refusé ?",
       [
         {
           text: "Annuler",
           style: "cancel"
         },
         {
-          text: "Confirmer", onPress: () => this.mark_as_absent()
+          text: "Confirmer", onPress: () => this.change_status('refuse')
         }
       ],
       { cancelable: false }
@@ -185,11 +193,11 @@ class fiche_passage extends React.Component {
   }
 
 
-async mark_as_absent(){
+async change_status(request){
   console.log('==============================');
   console.log('Token : ' + this.state.token);
   console.log('ID Passage : ' + this.state.id_passage);
-  await axios.post(`https://inetty.apps-dev.fr/api/mobile/interventions/pasages/mark-as-absent`, { auth_token: `${this.state.token}`, passage_id: this.state.id_passage })
+  await axios.post(`https://inetty.apps-dev.fr/api/mobile/interventions/pasages/change_status`, { auth_token: `${this.state.token}`, passage_id: this.state.id_passage,status:request })
     .then(async (response) => {
       if (response.status == 200) {
         console.log('Marker le passage comem absent : ' + this.state.id_passage);
@@ -197,7 +205,7 @@ async mark_as_absent(){
         this.setState({ message: 'Opération réussie, le passage est marqué comme Absent.' })
         console.log('==============================');
         //this.props.navigation.navigate('list_logements', { id_entervention: this.state.id_entervention });
-        this.props.navigation.navigate('list_passages', { id_entervention: this.state.id_entervention, id_passage: this.state.id_passage, id_logement: this.state.id_logement, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.Appt })
+        this.props.navigation.navigate('list_passages', { id_entervention: this.state.id_entervention, id_passage: this.state.id_passage, id_logement: this.state.id_logement, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.Appt,batiment_name:this.state.batiment_name })
 
 
       } else {
@@ -233,7 +241,7 @@ async mark_as_absent(){
       <ScrollView contentContainerStyle={styles.scrollView}>
 
         <LinearGradient start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} colors={['#BCD0EB', '#BCD0EB', '#BCD0EB', '#BCD0EB']} style={styles.header}>
-          <TouchableOpacity style={{ position: 'absolute', left: 5 }} onPress={() => this.props.navigation.navigate('list_passages', { id_entervention: this.state.id_entervention, id_passage: this.state.id_passage, id_logement: this.state.id_logement, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.Appt })} >
+          <TouchableOpacity style={{ position: 'absolute', left: 5 }} onPress={() => this.props.navigation.navigate('list_passages', { id_entervention: this.state.id_entervention, id_passage: this.state.id_passage, id_logement: this.state.id_logement, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.Appt,batiment_name:this.state.batiment_name })} >
             <Image style={{ width: 35, height: 35 }} source={require('../../resources/images/back.png')} />
           </TouchableOpacity>
           <Text style={{ position: 'absolute', left: 60, fontSize: 16, fontWeight: 'bold', color: "#224D88" }}>Fiche passage</Text>
@@ -269,6 +277,7 @@ async mark_as_absent(){
                 <Text style={{ margin: 10, fontSize: 15 }}>Collée</Text>
                 <Text style={{ margin: 10, fontSize: 15 }}>A remplacer</Text>
                 <Text style={{ margin: 10, fontSize: 15 }}>Pas de bouche</Text>
+                <Text style={{ margin: 10, fontSize: 15 }}>À Changer</Text>
                 <Text style={{ margin: 10, fontSize: 15 }}>Hotte raccordée sur ventilation</Text>
               </View>
               <View style={{ flexDirection: 'column', width: '60%' }}>
@@ -310,6 +319,14 @@ async mark_as_absent(){
                   boxStyle={{ width: '50%' }}
                   textStyle={{ margin: 10 }}
                   data={data}
+                  selectedBtn={(e) => cuisine_array[7] = e.value}
+                />
+
+                <RadioButtonRN
+                  style={{ flexDirection: 'row', width: '90%', height: 30, marginTop: 10 }}
+                  boxStyle={{ width: '50%' }}
+                  textStyle={{ margin: 10 }}
+                  data={data}
                   selectedBtn={(e) => cuisine_array[6] = e.value}
                 />
               </View>
@@ -317,7 +334,7 @@ async mark_as_absent(){
           </CardView>
 
           <CardView cardElevation={10} cornerRadius={20} style={styles.buildingsContainer}>
-            <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', margin: 10, textDecorationLine: 'underline' }}>Salle de bains</Text>
+            <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', margin: 10, textDecorationLine: 'underline' }}>Salle de bain</Text>
             <View style={{ flexDirection: 'row', width: '100%' }}>
               <View style={{ flexDirection: 'column', width: '40%' }}>
                 <Text style={{ margin: 10, marginBottom: 30, fontSize: 15 }}>Debit avant</Text>
@@ -326,6 +343,7 @@ async mark_as_absent(){
                 <Text style={{ margin: 10, fontSize: 15 }}>Collée</Text>
                 <Text style={{ margin: 10, fontSize: 15 }}>A remplacer</Text>
                 <Text style={{ margin: 10, fontSize: 15 }}>Pas de bouche</Text>
+                <Text style={{ margin: 10, fontSize: 15 }}>À Changer</Text>
               </View>
               <View style={{ flexDirection: 'column', width: '60%' }}>
                 <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '90%', fontSize: 20 }}
@@ -360,6 +378,13 @@ async mark_as_absent(){
                   data={data}
                   selectedBtn={(e) => salle_de_bain_array[5] = e.value}
                 />
+                <RadioButtonRN
+                  style={{ flexDirection: 'row', width: '90%', height: 30, marginTop: 10 }}
+                  boxStyle={{ width: '50%' }}
+                  textStyle={{ margin: 10 }}
+                  data={data}
+                  selectedBtn={(e) => salle_de_bain_array[6] = e.value}
+                />
               </View>
             </View>
           </CardView>
@@ -375,6 +400,7 @@ async mark_as_absent(){
                 <Text style={{ margin: 10, fontSize: 15 }}>Collée</Text>
                 <Text style={{ margin: 10, fontSize: 15 }}>A remplacer</Text>
                 <Text style={{ margin: 10, fontSize: 15 }}>Pas de bouche</Text>
+                <Text style={{ margin: 10, fontSize: 15 }}>À Changer</Text>
               </View>
               <View style={{ flexDirection: 'column', width: '60%' }}>
                 <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '90%', fontSize: 20 }}
@@ -409,6 +435,13 @@ async mark_as_absent(){
                   data={data}
                   selectedBtn={(e) => wc_array[5] = e.value}
                 />
+                <RadioButtonRN
+                  style={{ flexDirection: 'row', width: '90%', height: 30, marginTop: 10 }}
+                  boxStyle={{ width: '50%' }}
+                  textStyle={{ margin: 10 }}
+                  data={data}
+                  selectedBtn={(e) => wc_array[6] = e.value}
+                />
               </View>
             </View>
           </CardView>
@@ -423,6 +456,7 @@ async mark_as_absent(){
                 <Text style={{ margin: 10, fontSize: 15 }}>Collée</Text>
                 <Text style={{ margin: 10, fontSize: 15 }}>A remplacer</Text>
                 <Text style={{ margin: 10, fontSize: 15 }}>Pas de bouche</Text>
+                <Text style={{ margin: 10, fontSize: 15 }}>À Changer</Text>
               </View>
               <View style={{ flexDirection: 'column', width: '60%' }}>
                 <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '90%', fontSize: 20 }}
@@ -457,20 +491,27 @@ async mark_as_absent(){
                   data={data}
                   selectedBtn={(e) => autres_array[5] = e.value}
                 />
+                <RadioButtonRN
+                  style={{ flexDirection: 'row', width: '90%', height: 30, marginTop: 10 }}
+                  boxStyle={{ width: '50%' }}
+                  textStyle={{ margin: 10 }}
+                  data={data}
+                  selectedBtn={(e) => autres_array[6] = e.value}
+                />
               </View>
             </View>
           </CardView>
 
           <CardView cardElevation={10} cornerRadius={20} style={styles.buildingsContainer}>
-            <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', margin: 10, textDecorationLine: 'underline' }}>Commentaire</Text>
+            <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', margin: 10, textDecorationLine: 'underline' }}>Commentaires</Text>
             <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '100%', height: 100, marginTop: 10, marginBottom: 10 }}
-              returnKeyLabel={"next"} onChangeText={(text) => additional_informations_array[0] = text}></TextInput>
+              returnKeyLabel={"next"} onChangeText={(text) => additional_informations_array[0] = text} multiline={true}></TextInput>
           </CardView>
 
           <CardView cardElevation={10} cornerRadius={20} style={styles.buildingsContainer}>
             <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', margin: 10, textDecorationLine: 'underline' }}>Réf des bouches</Text>
             <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '100%', height: 100, marginTop: 10, marginBottom: 10 }}
-              returnKeyLabel={"next"} onChangeText={(text) => additional_informations_array[1] = text}></TextInput>
+              returnKeyLabel={"next"} onChangeText={(text) => additional_informations_array[1] = text} multiline={true}></TextInput>
           </CardView>
 
           <CardView cardElevation={10} cornerRadius={20} style={styles.BouttonsContainer}>
@@ -480,13 +521,21 @@ async mark_as_absent(){
 
               
               
-              <TouchableOpacity style={styles.refuse_btn, { alignContent: 'center', margin: 15, marginBottom: 20 }} onPress={() => this.props.navigation.navigate('fiche_passage_pictures', { id_passage: this.state.id_passage, ref_passage: this.state.ref_passage + 1, id_logement: this.state.id_logement, id_entervention: this.state.id_entervention, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.Appt })}>
+              <TouchableOpacity style={styles.refuse_btn, { alignContent: 'center', margin: 15, marginBottom: 20 }} onPress={() => this.props.navigation.navigate('fiche_passage_pictures', { id_passage: this.state.id_passage, ref_passage: this.state.ref_passage + 1, id_logement: this.state.id_logement, id_entervention: this.state.id_entervention, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.Appt,batiment_name:this.state.batiment_name })}>
                   <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: '#224D88', padding: 20, borderRadius: 20, width: '100%' }}>Valider que les photos</Text>
               </TouchableOpacity>
              
-              <TouchableOpacity style={styles.refuse_btn, { alignContent: 'center', margin: 15, marginBottom: 20 }} onPress={() => this.mark_as_absent()}>
-                  <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: '#eb4d4b', padding: 20, borderRadius: 20, width: '100%' }}>Marquer le passage comme absent</Text>
+              <TouchableOpacity style={styles.refuse_btn, { alignContent: 'center', margin: 15, marginBottom: 20 }} onPress={() => this.change_status('absent')}>
+                  <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: 'orange', padding: 20, borderRadius: 20, width: '100%' }}>Marquer le passage comme absent</Text>
               </TouchableOpacity>
+
+
+                  <TouchableOpacity style={styles.refuse_btn, { alignContent: 'center', margin: 15, marginBottom: 20 }} onPress={() => this.refuse_btn()}>
+                    <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: '#eb4d4b', padding: 20, borderRadius: 20, width: '100%' }}>Refuser le passage</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.TextStyle}>{this.state.message}</Text>
+
+
           </CardView>
 
 

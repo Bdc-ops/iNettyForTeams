@@ -130,10 +130,10 @@ android {
 
     defaultConfig {
         applicationId "com.inettyforteams"
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion 23
+        targetSdkVersion 30
+        versionCode 9
+        versionName '5.4'
     }
     splits {
         abi {
@@ -163,6 +163,7 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+
 
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->

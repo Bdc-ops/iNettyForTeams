@@ -22,6 +22,7 @@ class list_passages extends React.Component {
       timer: 1,
       message: '',
       Appt: '',
+      batiment_name:''
     };
   }
 
@@ -37,7 +38,8 @@ class list_passages extends React.Component {
           const ref_intervention = this.props.navigation.getParam('ref_intervention', null);
           const id_addresse = this.props.navigation.getParam('id_addresse', null);
           const Appt = this.props.navigation.getParam('appt', null);
-
+          const batiment_name = this.props.navigation.getParam('batiment_name', null);
+          
 
           const day = this.props.navigation.getParam('day', null);
           this.setState({
@@ -47,6 +49,7 @@ class list_passages extends React.Component {
             id_entervention: id_entervention,
             id_addresse: id_addresse,
             ref_intervention: ref_intervention,
+            batiment_name:batiment_name,
             token: token,
             Appt: Appt,
           });
@@ -90,6 +93,7 @@ class list_passages extends React.Component {
         console.log("ERROR API interventions liste URL : " + error);
         console.log('==============================');
       });
+      console.log('name : '+this.state.batiment_name);
   }
 
   refuse_btn() {
@@ -121,7 +125,7 @@ class list_passages extends React.Component {
           this.setState({ message: 'Opération réussie, les passages du logement sont attribués comme refusé.' })
           console.log('==============================');
           //this.props.navigation.navigate('list_logements', { id_entervention: this.state.id_entervention });
-          this.props.navigation.navigate('list_logements', { id_entervention: this.state.id_entervention, id_addresse: this.state.id_addresse, ref_intervention: this.state.ref_intervention });
+          this.props.navigation.navigate('list_logements', { id_entervention: this.state.id_entervention, id_addresse: this.state.id_addresse, ref_intervention: this.state.ref_intervention,batiment_name:this.state.batiment_name });
 
         } else {
           this.setState({ message: 'Opération échouée, veuillez vérifier votre connexion et réessayer' })
@@ -139,7 +143,7 @@ class list_passages extends React.Component {
     return (
       <ScrollView contentContainerStyle={styles.scrollView}>
         <LinearGradient start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} colors={['#BCD0EB', '#BCD0EB', '#BCD0EB', '#BCD0EB']} style={styles.header}>
-          <TouchableOpacity style={{ position: 'absolute', left: 5 }} onPress={() => this.props.navigation.navigate('list_logements', { id_entervention: this.state.id_entervention, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.Appt })} >
+          <TouchableOpacity style={{ position: 'absolute', left: 5 }} onPress={() => this.props.navigation.navigate('list_logements', { id_entervention: this.state.id_entervention, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.Appt,batiment_name:this.state.batiment_name })} >
             <Image style={{ width: 35, height: 35 }} source={require('../../resources/images/back.png')} />
           </TouchableOpacity>
           <Text style={{ position: 'absolute', left: 60, fontSize: 16, fontWeight: 'bold', color: "#224D88" }}>Passages</Text>
@@ -166,7 +170,7 @@ class list_passages extends React.Component {
             this.state.list_passages.map((detail, index) =>
               this.state.list_passages[index].status == "pending" ?
                 (
-                  <TouchableOpacity key={index} onPress={() => this.props.navigation.navigate('fiche_passage', { id_passage: detail.id, ref_passage: index + 1, id_logement: this.state.id_logement, id_entervention: this.state.id_entervention, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.Appt })} >
+                  <TouchableOpacity key={index} onPress={() => this.props.navigation.navigate('fiche_passage', { id_passage: detail.id, ref_passage: index + 1, id_logement: this.state.id_logement, id_entervention: this.state.id_entervention, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.Appt,batiment_name:this.state.batiment_name })} >
                     <View style={styles.intContainer}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', textAlign: 'center' }}>
                         <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', width: 210 }} numberOfLines={1}>Passage {index + 1}</Text>
@@ -183,6 +187,18 @@ class list_passages extends React.Component {
                         <View style={{ flexDirection: 'row', alignItems: 'center', textAlign: 'center' }}>
                           <Text style={{ fontSize: 20, color: "grey", width: 210 }} numberOfLines={1}>Passage {index + 1}</Text>
                           <Text style={{ position: 'absolute', right: 0, color: '#ffffff', backgroundColor: '#eb4d4b', padding: 5, borderRadius: 10 }}>Absent</Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  )
+                  :
+                this.state.list_passages[index].status == "refuse" ?
+                  (
+                    <TouchableOpacity key={index}>
+                      <View style={styles.intContainer}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', textAlign: 'center' }}>
+                          <Text style={{ fontSize: 20, color: "grey", width: 210 }} numberOfLines={1}>Passage {index + 1}</Text>
+                          <Text style={{ position: 'absolute', right: 0, color: '#ffffff', backgroundColor: '#eb4d4b', padding: 5, borderRadius: 10 }}>Refusé</Text>
                         </View>
                       </View>
                     </TouchableOpacity>

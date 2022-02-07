@@ -6,6 +6,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-community/async-storage';
 const waiting = require('../../resources/images/waiting.png');
 const nothing = require('../../resources/images/nothing.png');
+import moment from 'moment';
 
 class list_interventions extends React.Component {
   constructor(props) {
@@ -101,7 +102,7 @@ class list_interventions extends React.Component {
                       style={{ width: 25, height: 25, marginRight: 5 }}
                       source={require('../../resources/images/clock.png')}
                     />
-                    <Text>{detail.date_du ? detail.date_du : '- - - -'} - {detail.date_au ? detail.date_au : '- - - -'}</Text>
+                    <Text>{detail.date_du ? moment(detail.date_du).format("DD-MM-YYYY") : '- - - -'} - {detail.date_au ? moment(detail.date_au).format("DD-MM-YYYY") : '- - - -'}</Text>
                   </View>
                   <Text style={{ marginLeft: 30 }}>Heure d'arrivée : {detail.heure_arrive ? detail.heure_arrive : '- - - -'}</Text>
 

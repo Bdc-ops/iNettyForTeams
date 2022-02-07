@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, ScrollView, View, Text, TouchableOpacity, Image, BackHandler,Modal,TextInput } from 'react-native';
+import { StyleSheet, ScrollView, View, Text, TouchableOpacity, Image, BackHandler,Modal,TextInput,Alert } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import ButtonSpinner from 'react-native-button-spinner';
 import FooterView from '../static_component/FooterView'
@@ -8,24 +8,28 @@ import AsyncStorage from '@react-native-community/async-storage';
 const waiting = require('../../resources/images/waiting.png');
 const buildings = require('../../resources/images/buildings.png');
 
-class list_logements extends React.Component {
+class list_batiments extends React.Component {
 
   constructor(props) {
     super(props);
+    this.batiment_name = React.createRef();
+    this.etage_name = React.createRef();
+    this.appt_name = React.createRef();
     this.state = {
       day: '',
       id_entervention: '',
       ref_intervention: '',
       indicator: '',
       id_addresse: '',
-      list_logements: [],
+      list_batiments: [],
       timer: 1,
       modalVisible: false,
       setModalVisible: false,
+      batiment_name:'',
       etage_name:'',
       appt_name:'',
       logement_indicator:0,
-      batiment_name :''
+      token:''
     };
   }
 
@@ -33,7 +37,6 @@ class list_logements extends React.Component {
     this.handler = BackHandler.addEventListener('hardwareBackPress', () => { return true });
     this.setState({ timer: 1 });
     this.loadData();
-    console.log('--------------------------');
   }
 
   loadData(){
@@ -45,16 +48,18 @@ class list_logements extends React.Component {
         const indicator = this.props.navigation.getParam('indicator', null);
         const id_addresse = this.props.navigation.getParam('id_addresse', null);
         const day = this.props.navigation.getParam('day', null);
-        const batiment_name = this.props.navigation.getParam('batiment_name', null);
         this.setState({
           day: day,
           id_entervention: id_entervention,
           ref_intervention: ref_intervention,
           indicator: indicator,
           id_addresse: id_addresse,
-          batiment_name:batiment_name
+          token:token
         });
-        this.Get_details_logements(token, id_entervention, id_addresse);
+        console.log('inter :' + id_entervention);
+
+        this.Get_details_batiments(token, id_entervention, id_addresse);
+
       } else {
         //navigate('error');
       }
@@ -67,15 +72,12 @@ class list_logements extends React.Component {
   }
 
 
-  async Get_details_logements(token, id_entervention, id_addresse) {
+  async Get_details_batiments(token, id_entervention, id_addresse) {
+
     console.log('de l\'intervention' + id_entervention);
+    console.log('de l\'adresse' + id_addresse);
 
-    console.log('--------------------------');
-    console.log('id_entervention :' + this.state.id_entervention);
-    console.log('batiment_name :' + this.state.batiment_name);
-    console.log('--------------------------');
-
-    await axios.post(`https://inetty.apps-dev.fr/api/mobile/interventions/${id_entervention}/logements/${this.state.batiment_name}`, { auth_token: `${token}` })
+    await axios.post(`https://inetty.apps-dev.fr/api/mobile/interventions/${id_entervention}/batiments/${id_addresse}`, { auth_token: `${token}` })
       .then(async (response) => {
         console.log('==============================');
         console.log('Liste des logements');
@@ -83,17 +85,20 @@ class list_logements extends React.Component {
         if (response.data.success == true) {
           console.log('msg success' + response.data.success);
           console.log('List correctly mapped');
-          let list_logements = response.data.logements;
+          let list_batiments = response.data.batiments;
           var data = [];
-          await Object.keys(list_logements, id_entervention, id_addresse).forEach(async function (index) {
-            console.log(list_logements[index].adresse_id+'----'+id_addresse);
-            if (list_logements[index].adresse_id === id_addresse) {
+          await Object.keys(list_batiments, id_entervention, id_addresse).forEach(async function (index) {
+              data.push(list_batiments[index]);
+              /*
+              if (list_batiments[index].adresse_id === id_addresse) {
               data.push(list_logements[index]);
             }
+              */
           });
-          this.setState({ list_logements: data, timer: 0 });
-          //console.log(data);
-          console.log(`https://inetty.apps-dev.fr/api/mobile/interventions/${id_entervention}/logements/${this.state.batiment_name}`);
+          this.setState({ list_batiments: data, timer: 0 });
+
+          console.log(data);
+          console.log('id_addresse : '+this.state.id_addresse);
 
         }
         console.log('==============================');
@@ -104,23 +109,25 @@ class list_logements extends React.Component {
       });
   }
 
-async create_logement(){
-  if((this.state.etage_name.length>0) && (this.state.appt_name.length>0)){
+async create_batiment(){
+  if(this.state.batiment_name.length>0){
     return new Promise(async (resolve, reject) => {
-    const logement_data = {
+    const batiment_data = {
       auth_token: this.state.token,
-      building_id : this.state.list_logements[0].building_id,
+      int_id : this.state.id_entervention,
+      addr_id : this.state.id_addresse,
+      name:this.state.batiment_name,
       etage_name:this.state.etage_name,
-      appt_name:this.state.appt_name,
-      int_id:this.state.id_entervention
+      appt_name:this.state.appt_name
     }
-   
+    console.log(batiment_data);
+
       await axios(
         {
           method: 'post',
-          url: `https://inetty.apps-dev.fr/api/mobile/interventions/create_logements`,
+          url: `https://inetty.apps-dev.fr/api/mobile/interventions/create_batiment`,
           headers: { 'auth_token': this.state.token, 'Accept': 'application/json' },
-          data: logement_data
+          data: batiment_data
         }
       )
         .then(async (response) => {
@@ -128,14 +135,20 @@ async create_logement(){
           if (response.status === 200) {
             console.log('Logement created, response : ' + response.status);
             resolve("api ok");
-            this.setState({logement_indicator:1})
+            this.setState({logement_indicator:1,/*modalVisible: false*/})
             this.loadData();
             //this.props.navigation.navigate('list_logements', { id_entervention: this.state.id_entervention, ref_intervention: this.state.ref_intervention, id_addresse: this.state.ref_intervention });
-  
+            setTimeout(() => {
+              this.setState({logement_indicator:0,batiment_name:'',etage_name:'',appt_name:''})
+              this.batiment_name.current.clear();
+              this.etage_name.current.clear();
+              this.appt_name.current.clear();
+            },1500);
           }
         })
         .catch(error => {
           console.log('Logement creation error, Error : ' + error);
+          console.log(batiment_data);
           resolve("api ok");
   
         });
@@ -146,17 +159,59 @@ async create_logement(){
 
 }
 
+delete_batiment_alert(addr_id,name){
+  Alert.alert(
+    "Voulez-vous vraiment supprimer tout le bâtiment ?",
+    "",
+    [
+      {
+        text: "Annuler",
+        style: "cancel"
+      },
+      {
+        text: "Confirmer", onPress: () => this.delete_batiment(addr_id,name)
+      }
+    ],
+    { cancelable: false }
+  );
+}
 
+async delete_batiment(addr_id,name){
+  console.log("delete batiment : "+addr_id+'-'+name);
+  const batiment_data = {
+    auth_token: this.state.token,
+    addr_id : addr_id,
+    name : name
+  }
+    await axios(
+      {
+        method: 'post',
+        url: `https://inetty.apps-dev.fr/api/mobile/interventions/${this.state.id_entervention}/delete/logements`,
+        headers: { 'auth_token': this.state.token, 'Accept': 'application/json' },
+        data: batiment_data
+      }
+    )
+      .then(async (response) => {
+        console.log('reponse : ' + response.status);
+        if (response.status === 200) {
+          console.log('batiment deleted, response : ' + response.status);
+          this.loadData();
+        }
+      })
+      .catch(async (error) => {
+        console.log('Batiment suppression error, Error : ' + error);
+      });
+}
   render() {
 
     return (
       <ScrollView contentContainerStyle={styles.scrollView}>
         <LinearGradient start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} colors={['#BCD0EB', '#BCD0EB', '#BCD0EB', '#BCD0EB']} style={styles.header}>
-          <TouchableOpacity style={{ position: 'absolute', left: 5 }} onPress={() => this.props.navigation.navigate('list_batiments', { id_entervention: this.state.id_entervention, indicator: 'interventions', day: '',ref_intervention:this.state.ref_intervention,id_addresse:this.state.id_addresse,batiment_name:this.state.batiment_name })} >
+          <TouchableOpacity style={{ position: 'absolute', left: 5 }} onPress={() => this.props.navigation.navigate('fiche_intervention', { id_entervention: this.state.id_entervention, indicator: 'interventions', day: '' })} >
             <Image style={{ width: 35, height: 35 }} source={require('../../resources/images/back.png')} />
           </TouchableOpacity>
-          <Text style={{ position: 'absolute', left: 60, fontSize: 16, fontWeight: 'bold', color: "#224D88" }}>Bâtiment</Text>
-          <Text style={{ color: "#ffffff", backgroundColor: '#224D88', padding: 5, borderRadius: 10, borderStyle: 'solid', position: 'absolute', right: 10, fontSize: 15, fontWeight: 'bold' }}>{this.state.batiment_name ? this.state.batiment_name : '---'}</Text>
+          <Text style={{ position: 'absolute', left: 60, fontSize: 16, fontWeight: 'bold', color: "#224D88" }}>Intervention</Text>
+          <Text style={{ color: "#ffffff", backgroundColor: '#224D88', padding: 5, borderRadius: 10, borderStyle: 'solid', position: 'absolute', right: 10, fontSize: 15, fontWeight: 'bold' }}>{this.state.ref_intervention ? this.state.ref_intervention : '---'}</Text>
         </LinearGradient>
 
         <View style={styles.body}>
@@ -171,10 +226,9 @@ async create_logement(){
               )
               :
               (
-                <Text></Text>
-                  /*<TouchableOpacity style={{ alignContent: 'center', margin: 10, marginBottom: 10}} onPress={() => { this.setState({ modalVisible: true }) }}>
-                    <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: '#00BFA6', padding: 20, borderRadius: 20, width: '100%' }}>Ajouter un logement</Text>
-                  </TouchableOpacity>  */            
+                  <TouchableOpacity style={{ alignContent: 'center', margin: 10, marginBottom: 10}} onPress={() => { this.setState({ modalVisible: true }) }}>
+                    <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: '#00BFA6', padding: 20, borderRadius: 20, width: '100%' }}>Ajouter un bâtiment</Text>
+                  </TouchableOpacity>              
             )
           }
 
@@ -182,24 +236,29 @@ async create_logement(){
           <Modal animationType="slide" transparent={true} visible={this.state.modalVisible}>
             <View style={styles.modal_create_logement}>
               <View style={styles.modal_view}>
-              <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', marginBottom: 20, textDecorationLine: 'underline' }}>Nouveau logement</Text>
+              <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', marginBottom: 20, textDecorationLine: 'underline' }}>Nouveau bâtiment</Text>
                 <View style={{ flexDirection: 'row', width: '100%' }}>
                   <View style={{ flexDirection: 'column', width: '40%' }}>
-                      <Text style={{ margin: 10, marginBottom: 20, fontSize: 20 }}>Etage</Text>
-                      <Text style={{ margin: 10, marginBottom: 20, fontSize: 20 }}>Appt</Text>
+                      <Text style={{ margin: 10, marginBottom: 30, fontSize: 15 }}>Batiment </Text>
+                      <Text style={{ margin: 10, marginBottom: 30, fontSize: 15 }}>Etage</Text>
+                      <Text style={{ margin: 10, marginBottom: 30, fontSize: 15 }}>Appt</Text>
                   </View>
                   <View style={{ flexDirection: 'column', width: '60%' }}>
-                      <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '90%', fontSize: 20 }}
+                      <TextInput ref={this.batiment_name}  style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '90%', fontSize: 20 }}
+                          returnKeyLabel={"next"} onChangeText={(text) => this.setState({batiment_name : text})}></TextInput>
+
+                      <TextInput ref={this.etage_name}  style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '90%', fontSize: 20, marginTop: 10 }}
                           returnKeyLabel={"next"} onChangeText={(text) => this.setState({etage_name : text})}></TextInput>
 
-                      <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '90%', fontSize: 20, marginTop: 10 }}
+                      <TextInput ref={this.appt_name}  style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '90%', fontSize: 20, marginTop: 10 }}
                           returnKeyLabel={"next"} onChangeText={(text) => this.setState({appt_name : text})}></TextInput>
+
                   </View>
                 </View>
                 {
                   this.state.logement_indicator == 0 ?
                   (
-                <ButtonSpinner style={{ alignContent: 'center', marginTop: 30,width:'100%', backgroundColor: '#00BFA6', borderRadius: 20, padding: 10 }} positionSpinner={'centered-without-text'} styleSpinner={{ color: '#ffffff' }} onPress={() => this.create_logement()}>
+                <ButtonSpinner style={{ alignContent: 'center', marginTop: 30,width:'100%', backgroundColor: '#00BFA6', borderRadius: 20, padding: 10 }} positionSpinner={'centered-without-text'} styleSpinner={{ color: '#ffffff' }} onPress={() => this.create_batiment()}>
                       <Text style={{ textAlign: 'center', color: '#ffffff' }}>Enregistrer</Text>
                 </ButtonSpinner>
                   )
@@ -219,61 +278,20 @@ async create_logement(){
             </Modal>
 
 
-          {this.state.list_logements.length > 0 ?
-            this.state.list_logements.map((detail, index) =>
-              this.state.list_logements[index].status == "refus" ?
-
-                (
-                  <TouchableOpacity key={index}>
-                    <View style={styles.intContainer}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', textAlign: 'center' }}>
-                        <Text style={{ fontSize: 20, color: "grey", width: 210 }} numberOfLines={1}>Etage {this.state.list_logements[index].etage_num} - Appt {this.state.list_logements[index].appart_num}</Text>
-                        <Text style={{ position: 'absolute', right: 0, color: '#ffffff', backgroundColor: '#eb4d4b', padding: 5, borderRadius: 10 }}>Refusé</Text>
-
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                )
-                :
-                this.state.list_logements[index].status == "absent" ?
-
-                (
-                  <TouchableOpacity key={index} onPress={() => this.props.navigation.navigate('list_passages', { id_logement: this.state.list_logements[index].id, id_entervention: this.state.id_entervention, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.list_logements[index].appart_num,batiment_name:this.state.batiment_name })}>
-                    <View style={styles.intContainer}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', textAlign: 'center' }}>
-                        <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', width: 210 }} numberOfLines={1}>Etage {this.state.list_logements[index].etage_num} - Appt {this.state.list_logements[index].appart_num}</Text>
-                        <Text style={{ position: 'absolute', right: 0, color: '#ffffff', backgroundColor: 'gray', padding: 5, borderRadius: 10 }}>Absent</Text>
-
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                )
-                :
-                this.state.list_logements[index].status == "pending" ?
+          {this.state.list_batiments.length > 0 ?
+            this.state.list_batiments.map((detail, index) =>
                   (
-                    <TouchableOpacity key={index} onPress={() => this.props.navigation.navigate('list_passages', { id_logement: this.state.list_logements[index].id, id_entervention: this.state.id_entervention, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.list_logements[index].appart_num,batiment_name:this.state.batiment_name })}>
-                      <View style={styles.intContainer}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', textAlign: 'center' }}>
-                          <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', width: 210 }} numberOfLines={1}>Etage {this.state.list_logements[index].etage_num} - Appt {this.state.list_logements[index].appart_num}</Text>
-                          <Text style={{ position: 'absolute', right: 0, color: '#ffffff', backgroundColor: '#f0932b', padding: 5, borderRadius: 10 }}>À faire</Text>
-                        </View>
+                   
+
+                    <TouchableOpacity key={index} onPress={() => this.props.navigation.navigate('list_logements', { id_entervention: this.state.id_entervention, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse,batiment_name: detail.name})}>
+                    <View style={styles.intContainer}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', textAlign: 'center' }}>
+                        <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', width: 210 }} numberOfLines={1}>Bâtiment : {detail.name}</Text>
+                        <Text onPress={() => this.delete_batiment_alert(this.state.id_addresse,detail.name)} style={{ position: 'absolute', right: 0, color: '#ffffff', backgroundColor: 'red', paddingTop: 5, paddingBottom: 5, paddingLeft: 20, paddingRight: 20, borderRadius: 100 }}>X</Text>
+
                       </View>
-                    </TouchableOpacity>
-                  )
-                  :
-                  this.state.list_logements[index].status == "fait" ?
-                    (
-                      <TouchableOpacity key={index} onPress={() => this.props.navigation.navigate('list_passages', { id_logement: this.state.list_logements[index].id, id_entervention: this.state.id_entervention, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.list_logements[index].appart_num,batiment_name:this.state.batiment_name })}>
-                        <View style={styles.intContainer}>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', textAlign: 'center' }}>
-                            <Text style={{ fontSize: 20, color: "grey", width: 210 }} numberOfLines={1}>Etage {this.state.list_logements[index].etage_num} - Appt {this.state.list_logements[index].appart_num}</Text>
-                            <Text style={{ position: 'absolute', right: 0, color: '#ffffff', backgroundColor: '#6ab04c', padding: 5, borderRadius: 10 }}>Fait</Text>
-                          </View>
-                        </View>
-                      </TouchableOpacity>
-                    )
-                    :
-                    (<Text></Text>)
+                    </View>
+                  </TouchableOpacity>)
             )
             :
             (<Text></Text>)
@@ -347,7 +365,7 @@ const styles = StyleSheet.create({
   },
   modal_view:{
     width: '80%',
-    height: 300,
+    height: 350,
     margin: 20,
     borderRadius: 25,
     padding: 35,
@@ -411,4 +429,4 @@ const styles = StyleSheet.create({
 });
 
 
-export default list_logements;
+export default list_batiments;

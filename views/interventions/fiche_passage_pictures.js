@@ -9,8 +9,8 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-community/async-storage';
 import RadioButtonRN from 'radio-buttons-react-native';
 import CardView from 'react-native-cardview';
-import ImageCompressor from '@trunkrs/react-native-image-compressor'
-
+import ImageCompressor from '@trunkrs/react-native-image-compressor';
+import SignatureCapture from 'react-native-signature-capture';
 const waiting = require('../../resources/images/waiting.png');
 
 class fiche_passage_pictures extends React.Component {
@@ -39,7 +39,15 @@ class fiche_passage_pictures extends React.Component {
       token: '',
       Appt: '',
       ref_passage: '',
-      data_passage:''
+      data_passage:'',
+      cuisine_comment:'',
+      salle_de_bain_comment:'',
+      wc_comment:'',
+      autres_comment:'',
+      img_signature:'',
+      is_validate:0,
+      batiment_name:'',
+      nom_occupant:''
     };
   }
 
@@ -59,6 +67,7 @@ class fiche_passage_pictures extends React.Component {
           const id_addresse = this.props.navigation.getParam('id_addresse', null);
           const Appt = this.props.navigation.getParam('appt', null);
           const ref_passage = this.props.navigation.getParam('ref_passage', null);
+          const batiment_name = this.props.navigation.getParam('batiment_name', null);
 
           this.setState({
             day: day,
@@ -71,6 +80,7 @@ class fiche_passage_pictures extends React.Component {
             id_addresse: id_addresse,
             Appt: Appt,
             ref_passage: ref_passage,
+            batiment_name:batiment_name
           });
           console.log('Fiche passage - Num appart : ' + this.state.Appt + ' - Id addresse : ' + this.state.id_addresse);
 
@@ -171,108 +181,124 @@ class fiche_passage_pictures extends React.Component {
   }
 
 
+check_and_validate(){
+    Alert.alert(
+      "Voulez-vous vraiment valider sans signature ? ",
+      "",
+      [
+        {
+          text: "Annuler",
+          style: "cancel"
+        },
+        {
+          text: "Valider comme meme", onPress: () => this.validate_data(),
+  
+        }
+      ],
+      { cancelable: false }
+    );
+}
 
 
 
-  async validate_data(){
-    return new Promise(async (resolve, reject) => {
+
+async validate_data(){
+  return new Promise(async (resolve, reject) => {
+            this.state.img_c_0 ? 
+            await RNFS.readFile(this.state.img_c_0, 'base64')
+            .then(async (res) => {
+                await ImageCompressor.compress(res, {maxWidth: 350,maxHeight: 250})
+                .then(async (res) =>{
+                  console.log('Image 1 Compressed and Saved');
+                  this.setState({img_c_0:res});
+                });
+            })
+          : ''
+
+          this.state.img_c_1 ? 
+            await RNFS.readFile(this.state.img_c_1, 'base64')
+            .then(async (res) => { 
+                await ImageCompressor.compress(res, {maxWidth: 350,maxHeight: 250})
+                .then(async (res) =>{
+                  console.log('Image 2 Compressed and Saved');
+                  this.setState({img_c_1:res});
+                });
+          }) 
+          : ''
 
 
-        this.state.img_c_0 ? 
-          await RNFS.readFile(this.state.img_c_0, 'base64')
-          .then(async (res) => {
-              await ImageCompressor.compress(res, {maxWidth: 300,maxHeight: 200})
-              .then(async (res) =>{
-                console.log('Image 1 Compressed and Saved');
-                this.setState({img_c_0:res});
-              });
-          })
-        : ''
-
-        this.state.img_c_1 ? 
-          await RNFS.readFile(this.state.img_c_1, 'base64')
-          .then(async (res) => { 
-              await ImageCompressor.compress(res, {maxWidth: 300,maxHeight: 200})
-              .then(async (res) =>{
-                console.log('Image 2 Compressed and Saved');
-                this.setState({img_c_1:res});
-              });
-        }) 
-        : ''
+          this.state.img_s_0 ? 
+            await RNFS.readFile(this.state.img_s_0, 'base64')
+            .then(async (res) => { 
+                await ImageCompressor.compress(res, {maxWidth: 350,maxHeight: 250})
+                .then(async (res) =>{
+                  console.log('Image 3 Compressed and Saved');
+                  this.setState({img_s_0:res});
+                });
+          }) 
+          : ''
 
 
-        this.state.img_s_0 ? 
-          await RNFS.readFile(this.state.img_s_0, 'base64')
-          .then(async (res) => { 
-              await ImageCompressor.compress(res, {maxWidth: 300,maxHeight: 200})
-              .then(async (res) =>{
-                console.log('Image 3 Compressed and Saved');
-                this.setState({img_s_0:res});
-              });
-        }) 
-        : ''
+          this.state.img_s_1 ? 
+            await RNFS.readFile(this.state.img_s_1, 'base64')
+            .then(async (res) => { 
+                await ImageCompressor.compress(res, {maxWidth: 350,maxHeight: 250})
+                .then(async (res) =>{
+                  console.log('Image 4 Compressed and Saved');
+                  this.setState({img_s_1:res});
+                });
+          }) 
+          : ''
 
 
-        this.state.img_s_1 ? 
-          await RNFS.readFile(this.state.img_s_1, 'base64')
-          .then(async (res) => { 
-              await ImageCompressor.compress(res, {maxWidth: 300,maxHeight: 200})
-              .then(async (res) =>{
-                console.log('Image 4 Compressed and Saved');
-                this.setState({img_s_1:res});
-              });
-        }) 
-        : ''
+          this.state.img_w_0 ? 
+            await RNFS.readFile(this.state.img_w_0, 'base64')
+            .then(async (res) => { 
+                await ImageCompressor.compress(res, {maxWidth: 350,maxHeight: 250})
+                .then(async (res) =>{
+                  console.log('Image 5 Compressed and Saved');
+                  this.setState({img_w_0:res});
+                });
+          }) 
+          : ''
 
 
-        this.state.img_w_0 ? 
-          await RNFS.readFile(this.state.img_w_0, 'base64')
-          .then(async (res) => { 
-              await ImageCompressor.compress(res, {maxWidth: 300,maxHeight: 200})
-              .then(async (res) =>{
-                console.log('Image 5 Compressed and Saved');
-                this.setState({img_w_0:res});
-              });
-        }) 
-        : ''
+          this.state.img_w_1 ? 
+            await RNFS.readFile(this.state.img_w_1, 'base64')
+            .then(async (res) => { 
+                await ImageCompressor.compress(res, {maxWidth: 350,maxHeight: 250})
+                .then(async (res) =>{
+                  console.log('Image 6 Compressed and Saved');
+                  this.setState({img_w_1:res});
+                });
+          }) 
+          : ''
 
 
-        this.state.img_w_1 ? 
-          await RNFS.readFile(this.state.img_w_1, 'base64')
-          .then(async (res) => { 
-              await ImageCompressor.compress(res, {maxWidth: 300,maxHeight: 200})
-              .then(async (res) =>{
-                console.log('Image 6 Compressed and Saved');
-                this.setState({img_w_1:res});
-              });
-        }) 
-        : ''
+          this.state.img_a_0 ? 
+            await RNFS.readFile(this.state.img_a_0, 'base64')
+            .then(async (res) => { 
+                await ImageCompressor.compress(res, {maxWidth: 350,maxHeight: 250})
+                .then(async (res) =>{
+                  console.log('Image 7 Compressed and Saved');
+                  this.setState({img_a_0:res});
+                });
+          }) 
+          : ''
 
 
-        this.state.img_a_0 ? 
-          await RNFS.readFile(this.state.img_a_0, 'base64')
-          .then(async (res) => { 
-              await ImageCompressor.compress(res, {maxWidth: 300,maxHeight: 200})
-              .then(async (res) =>{
-                console.log('Image 7 Compressed and Saved');
-                this.setState({img_a_0:res});
-              });
-        }) 
-        : ''
-
-
-        this.state.img_a_1 ? 
-          await RNFS.readFile(this.state.img_a_1, 'base64')
-          .then(async (res) => { 
-              await ImageCompressor.compress(res, {maxWidth: 300,maxHeight: 200})
-              .then(async (res) =>{
-                console.log('Image 8 Compressed and Saved');
-                this.setState({ img_a_1:res});
-                this.send_pictures(resolve);
-              });
-        }) 
-        :
-        this.send_pictures(resolve);
+          this.state.img_a_1 ? 
+            await RNFS.readFile(this.state.img_a_1, 'base64')
+            .then(async (res) => { 
+                await ImageCompressor.compress(res, {maxWidth: 350,maxHeight: 250})
+                .then(async (res) =>{
+                  console.log('Image 8 Compressed and Saved');
+                  this.setState({ img_a_1:res});
+                  this.send_pictures(resolve);
+                });
+          }) 
+          :
+          this.send_pictures(resolve);            
 
       });
   }
@@ -286,20 +312,28 @@ async send_pictures(resolve){
     cuisine: {
       img_avant:this.state.img_c_0,
       img_apres:this.state.img_c_1,
+      cuisine_comment:this.state.cuisine_comment,
     },
     salle_de_bain: {
       img_avant:this.state.img_s_0,
       img_apres:this.state.img_s_1,
+      salle_de_bain_comment:this.state.salle_de_bain_comment,
     },
     wc: {
       img_avant:this.state.img_w_0,
       img_apres:this.state.img_w_1,
+      wc_comment:this.state.wc_comment,
     },
     autres: {
       img_avant:this.state.img_a_0,
-      img_apres:this.state.img_a_1
-    }
+      img_apres:this.state.img_a_1,
+      autres_comment:this.state.autres_comment
+    },
+    signature_occupant : this.state.img_signature,
+    nom_occupant: this.state.nom_occupant
   };
+
+  
     await axios(
     {
       method: 'post',
@@ -312,8 +346,11 @@ async send_pictures(resolve){
         console.log('reponse : ' + response.status);
         if (response.status === 200) {
           console.log('Rapport pictures Sent : ' + response.status);
-          this.props.navigation.navigate('list_logements', { id_entervention: this.state.id_entervention, id_addresse: this.state.id_addresse, ref_intervention: this.state.ref_intervention });
+          this.props.navigation.navigate('list_logements', { id_entervention: this.state.id_entervention, id_addresse: this.state.id_addresse, ref_intervention: this.state.ref_intervention,batiment_name:this.state.batiment_name });
+          //this.props.navigation.navigate('fiche_passage_titres', { id_passage: this.state.id_passage, ref_passage: this.state.ref_passage + 1, id_logement: this.state.id_logement, id_entervention: this.state.id_entervention, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.Appt})
+
           resolve("api ok");
+          console.log(data_pictures);
         }
       })
       .catch(error => {
@@ -323,6 +360,44 @@ async send_pictures(resolve){
       });
 }
 
+_onSaveEvent(result) {
+  if (result.encoded.length > 2000) {
+    console.log('Signature du client enregistrer');
+    this.setState({ img_signature: result.encoded,is_validate:1 });
+    alert('Signature du client validée');
+  } else {
+    alert('Veuillez saisir la signature du client');
+
+  }
+}
+
+
+resetSign2() {
+  this.refs["sign"].resetImage();
+  this.setState({ is_validate: '' });
+
+}
+
+
+_onDragEvent() {
+  console.log("dragged");
+}
+
+
+async validsignature(){
+    this.refs["sign"].saveImage();
+  
+    this.state.img_signature ? 
+    await RNFS.readFile(this.state.img_signature, 'base64')
+    .then(async (res) => {
+        await ImageCompressor.compress(res, {maxWidth: 350,maxHeight: 250})
+        .then(async (res) =>{
+          console.log('Image 1 Compressed and Saved');
+          this.setState({img_signature:res});
+        });
+    })
+  : ''
+}
 
   render() {
 
@@ -330,7 +405,7 @@ async send_pictures(resolve){
       <ScrollView contentContainerStyle={styles.scrollView}>
 
         <LinearGradient start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} colors={['#BCD0EB', '#BCD0EB', '#BCD0EB', '#BCD0EB']} style={styles.header}>
-          <TouchableOpacity style={{ position: 'absolute', left: 5 }} onPress={() => this.props.navigation.navigate('fiche_passage', { ref_passage:this.state.ref_passage,id_entervention: this.state.id_entervention, id_passage: this.state.id_passage, id_logement: this.state.id_logement, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.Appt })} >
+          <TouchableOpacity style={{ position: 'absolute', left: 5 }} onPress={() => this.props.navigation.navigate('fiche_passage', { ref_passage:this.state.ref_passage,id_entervention: this.state.id_entervention, id_passage: this.state.id_passage, id_logement: this.state.id_logement, ref_intervention: this.state.ref_intervention, id_addresse: this.state.id_addresse, appt: this.state.Appt,batiment_name:this.state.batiment_name })} >
             <Image style={{ width: 35, height: 35 }} source={require('../../resources/images/back.png')} />
           </TouchableOpacity>
           <Text style={{ position: 'absolute', left: 60, fontSize: 16, fontWeight: 'bold', color: "#224D88" }}>Images du passage</Text>
@@ -364,6 +439,13 @@ async send_pictures(resolve){
                 <Text style={this.state.img_c_1 ? { textAlign: 'center', color: '#ffffff', backgroundColor: '#00BFA6', padding: 8, borderRadius: 10, width: '100%'} : {textAlign: 'center', color: '#ffffff', backgroundColor: '#224D88', padding: 8, borderRadius: 10, width: '100%'}}>{this.state.img_c_1 ? 'Image uploadé' : 'Image Après'}</Text>
               </TouchableOpacity>
             </View>
+
+
+            <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', margin: 10, textDecorationLine: 'underline' }}>Commentaires</Text>
+            <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '100%', height: 100, marginTop: 10, marginBottom: 10 }}
+              returnKeyLabel={"next"} onChangeText={(text) => this.state.cuisine_comment = text} multiline={true}></TextInput>
+
+
           </CardView>
 
           <CardView cardElevation={10} cornerRadius={20} style={styles.buildingsContainer}>
@@ -376,6 +458,9 @@ async send_pictures(resolve){
                 <Text style={this.state.img_s_1 ? { textAlign: 'center', color: '#ffffff', backgroundColor: '#00BFA6', padding: 8, borderRadius: 10, width: '100%'} : {textAlign: 'center', color: '#ffffff', backgroundColor: '#224D88', padding: 8, borderRadius: 10, width: '100%'}}>{this.state.img_s_1 ? 'Image uploadé' : 'Image Après'}</Text>
               </TouchableOpacity>
             </View>
+            <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', margin: 10, textDecorationLine: 'underline' }}>Commentaires</Text>
+            <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '100%', height: 100, marginTop: 10, marginBottom: 10 }}
+              returnKeyLabel={"next"} onChangeText={(text) => this.state.salle_de_bain_comment = text} multiline={true}></TextInput>
           </CardView>
 
           <CardView cardElevation={10} cornerRadius={20} style={styles.buildingsContainer}>
@@ -388,7 +473,9 @@ async send_pictures(resolve){
                 <Text style={this.state.img_w_1 ? { textAlign: 'center', color: '#ffffff', backgroundColor: '#00BFA6', padding: 8, borderRadius: 10, width: '100%'} : {textAlign: 'center', color: '#ffffff', backgroundColor: '#224D88', padding: 8, borderRadius: 10, width: '100%'}}>{this.state.img_w_1 ? 'Image uploadé' : 'Image Après'}</Text>
               </TouchableOpacity>
             </View>
-
+            <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', margin: 10, textDecorationLine: 'underline' }}>Commentaires</Text>
+            <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '100%', height: 100, marginTop: 10, marginBottom: 10 }}
+              returnKeyLabel={"next"} onChangeText={(text) => this.state.wc_comment = text} multiline={true}></TextInput>
           </CardView>
 
           <CardView cardElevation={10} cornerRadius={20} style={styles.buildingsContainer}>
@@ -401,19 +488,52 @@ async send_pictures(resolve){
                 <Text style={this.state.img_a_1 ? { textAlign: 'center', color: '#ffffff', backgroundColor: '#00BFA6', padding: 8, borderRadius: 10, width: '100%'} : {textAlign: 'center', color: '#ffffff', backgroundColor: '#224D88', padding: 8, borderRadius: 10, width: '100%'}}>{this.state.img_a_1 ? 'Image uploadé' : 'Image Après'}</Text>
               </TouchableOpacity>
             </View>
+            <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', margin: 10, textDecorationLine: 'underline' }}>Commentaires</Text>
+            <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '100%', height: 100, marginTop: 10, marginBottom: 10 }}
+              returnKeyLabel={"next"} onChangeText={(text) => this.state.autres_comment = text} multiline={true}></TextInput>
           </CardView>
 
 
         
 
 
+          
+                    <CardView cardElevation={10} cornerRadius={20} style={styles.SignatureContainer}>
+                    <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', margin: 10, textDecorationLine: 'underline' }}>Nom de l'occupant</Text>
+                    <TextInput style={{ borderColor: 'gray', borderStyle: 'solid', borderWidth: 1, width: '95%', height: 50, margin: 10, marginBottom: 20 }}
+                    returnKeyLabel={"next"} onChangeText={(text) => this.state.nom_occupant = text} multiline={true}></TextInput>
+                    <Text style={{ fontSize: 20, color: "#224D88", fontWeight: 'bold', margin: 10, textDecorationLine: 'underline' }}>Signature de l'occupant</Text>
+                    <View style={styles.signature_border}>
+                      <SignatureCapture
+                        style={[{ flex: 1 }, styles.signature]}
+                        ref="sign"
+                        onSaveEvent={this._onSaveEvent.bind(this)}
+                        onDragEvent={this._onDragEvent.bind(this)}
+                        saveImageFileInExtStorage={false}
+                        showNativeButtons={false}
+                        showTitleLabel={false}
+                        backgroundColor="#ffffff"
+                        strokeColor="#224D88"
+                        minStrokeWidth={4}
+                        maxStrokeWidth={4}
+                        viewMode={"portrait"} />
+                    </View>
+                    <TouchableOpacity style={{ alignContent: 'center', margin: 10, marginBottom: 10 }} onPress={() => this.validsignature()}>
+                        <Text style={{ textAlign: 'center', color: '#ffffff', backgroundColor: 'orange', padding: 20, borderRadius: 20, width: '100%' }}>Valider la signature</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.signature_buttonStyle}
+                              onPress={() => { this.resetSign2() }} >
+                              <Text>Supprimer la signature de l'occupant</Text>
+                            </TouchableOpacity>
+                    </CardView>
+
           <CardView cardElevation={10} cornerRadius={20} style={styles.BouttonsContainer}>
-            <ButtonSpinner style={{ backgroundColor: '#00BFA6', borderRadius: 20, color: '#ffffff' }} positionSpinner={'centered-without-text'} styleSpinner={{ color: '#ffffff' }} onPress={this.validate_data.bind(this)}>
-                <Text style={{ textAlign: 'center', color: '#ffffff', padding: 5, }}>Envoyer et terminer</Text>
-              </ButtonSpinner>
-
-
+            <ButtonSpinner style={{ backgroundColor: '#00BFA6', borderRadius: 20, color: '#ffffff' }} positionSpinner={'centered-without-text'} styleSpinner={{ color: '#ffffff' }} onPress={this.state.is_validate == 0 ? this.check_and_validate.bind(this) : this.validate_data.bind(this) }>
+                <Text style={{ textAlign: 'center', color: '#ffffff', padding: 5, }}>Valider les images et continuer</Text>
+            </ButtonSpinner>
           </CardView>
+
+
 
 
 
@@ -454,6 +574,7 @@ const styles = StyleSheet.create({
     borderColor: '#224D88',
     borderWidth: 2,
     height: 200,
+    margin:10,
   },
   signature: {
     flex: 1,
@@ -558,8 +679,19 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 100,
   },
-
-
+  SignatureContainer:{
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0, height: 1
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 3,
+    margin: 15,
+    backgroundColor: "#fff",
+    borderRadius: 5,
+    marginBottom: 10,
+  }
 });
 
 

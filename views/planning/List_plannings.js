@@ -6,7 +6,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-community/async-storage';
 const waiting = require('../../resources/images/waiting.png');
 const nothing = require('../../resources/images/nothing.png');
-
+import moment from 'moment';
 class List_plannings extends React.Component {
     constructor(props) {
         super(props);
@@ -82,7 +82,7 @@ class List_plannings extends React.Component {
                     <TouchableOpacity style={{ position: 'absolute', left: 5 }} onPress={() => this.state.indicator == 'planning' ? this.props.navigation.navigate('Planning') : this.props.navigation.navigate('Dashboard')} >
                         <Image style={{ width: 35, height: 35 }} source={require('../../resources/images/back.png')} />
                     </TouchableOpacity>
-                    <Text style={{ position: 'absolute', left: 60, fontSize: 16, fontWeight: 'bold', color: "#224D88" }}>Interventions du {this.state.plannings_day}</Text>
+                    <Text style={{ position: 'absolute', left: 60, fontSize: 16, fontWeight: 'bold', color: "#224D88" }}>Interventions du {moment(this.state.plannings_day).format("DD-MM-YYYY")}</Text>
 
                 </LinearGradient>
 
@@ -130,7 +130,7 @@ class List_plannings extends React.Component {
                                             style={{ width: 25, height: 25, marginRight: 5 }}
                                             source={require('../../resources/images/clock.png')}
                                         />
-                                        <Text>{detail.date_du ? detail.date_du : '- - - -'} - {detail.date_au ? detail.date_au : '- - - -'}</Text>
+                                        <Text>{detail.date_du ? moment(detail.date_du).format("DD-MM-YYYY") : '- - - -'} - {detail.date_au ? moment(detail.date_au).format("DD-MM-YYYY") : '- - - -'}</Text>
                                     </View>
                                     <Text style={{ marginLeft: 30 }}>Heure d'arrivée : {detail.heure_arrive ? detail.heure_arrive : '- - - -'}</Text>
 

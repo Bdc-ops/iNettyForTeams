@@ -44,6 +44,7 @@ const onLoginSuccess = (dispatch, token, username) => {
     AsyncStorage.setItem('user_token', token)
         .then(() => {
             AsyncStorage.setItem('username', username);
+            AsyncStorage.setItem('pointage_id', '');
             dispatch({ type: LOGIN_SUCCESS, token: token });
         })
         .catch(error => onLoginFailed(dispatch, "Vos informations d'authentification sont incorrect"));
